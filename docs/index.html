@@ -98,20 +98,16 @@
                         <label for="server">Server URL:</label>
                         <input id="server" class="pure-input-1" type="text" v-model.lazy="server" placeholder="http://localhost:3000">
                     </div>
-
-                    <div class="pure-control-group">
-                        <label for="bucket">Namespace:</label>
-                        <input id="bucket" class="pure-input-1" type="text" v-model.lazy="bucket" placeholder="Namespace [bucket]">
-                    </div>
     
-                    <button id="get" class="pure-button pure-button-primary" @click.prevent="get">GET</button>
-                    <button id="post" class="pure-button" @click.prevent="post">POST</button>
-                    <button id="all" class="pure-button pure-button-primary" @click.prevent="all">ALL</button>
+                    <button class="pure-button pure-button-primary" @click.prevent="getData">GET</button>
+                    <button class="pure-button" @click.prevent="postData">POST</button>
+                    <button class="pure-button pure-button-primary" @click.prevent="getRegion">REGION</button>
+                    <button class="pure-button" @click.prevent="getNeighbours">NEIGHBOURS</button>
     
                     <label for="request">Request:</label>
                     <textarea id="request" class="pure-input-1" v-model="request"></textarea>
                     <label for="response">Response: <span :class="[parseInt(code) < 299 ? 'green' : 'red']">{{ code }}</span></label>
-                    <textarea id="response" class="pure-input-1" v-model="response" readonly></textarea>
+                    <textarea id="response" class="pure-input-1" v-model="response" rows="8" readonly></textarea>
                 </fieldset>
             </form>
             <p class="small">
@@ -148,7 +144,6 @@ var app = new Vue({
     neighbours: {},
     diagonal: 0.0,
     server: "http://localhost:3000",
-    bucket: "namespace",
     request: "",
     response: "",
     code: ""
@@ -280,10 +275,10 @@ var app = new Vue({
         });
         console.log((this.precision-1)*2);
     },
-    get() {
-        console.log(this.server, this.bucket, this.geohash);
+    getData() {
+        console.log(this.server, this.geohash);
         let vm = this;
-        axios.get(`${this.server}/${this.bucket}/${this.geohash}`)
+        axios.get(`${this.server}/${this.geohash}`)
         .then(function (response) {
             vm.code = response.status
             vm.response = JSON.stringify(response.data)
@@ -293,10 +288,10 @@ var app = new Vue({
             vm.response = error.response.data.message
         });
     },
-    post() {
-        console.log(this.server, this.bucket, this.geohash);
+    postData() {
+        console.log(this.server, this.geohash);
         let vm = this;
-        axios.post(`${this.server}/${this.bucket}/${this.geohash}`, vm.request, {
+        axios.post(`${this.server}/${this.geohash}`, vm.request, {
             headers: { 'Content-Type': 'text/plain' }
         }).then(function (response) {
             vm.code = response.status
@@ -307,13 +302,26 @@ var app = new Vue({
             vm.response = error.response.data.message
         });
     },
-    all() {
-        console.log(this.server, this.bucket, this.geohash);
+    getRegion() {
+        console.log(this.server, this.geohash);
         let vm = this;
-        axios.get(`${this.server}/${this.bucket}/${this.geohash}/all`)
+        axios.get(`${this.server}/${this.geohash}/region`)
         .then(function (response) {
             vm.code = response.status
-            vm.response = JSON.stringify(response.data)
+            vm.response = JSON.stringify(response.data, null, 2)
+        })
+        .catch(function (error) {
+            vm.code = error.response.status
+            vm.response = error.response.data.message
+        });
+    },
+    getNeighbours() {
+        console.log(this.server, this.geohash);
+        let vm = this;
+        axios.get(`${this.server}/${this.geohash}/neighbours`)
+        .then(function (response) {
+            vm.code = response.status
+            vm.response = JSON.stringify(response.data, null, 2)
         })
         .catch(function (error) {
             vm.code = error.response.status

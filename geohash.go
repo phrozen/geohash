@@ -22,13 +22,13 @@ import (
 	"math"
 )
 
-const (
+var (
 	//Base32 is the dictionary of characters for generating hashes
 	base32 = []byte("0123456789bcdefghjkmnpqrstuvwxyz")
 	// Bitmask positions for 5 bit base32 encoding
-	// []byte{ 0b10000, 0b01000, 0b00100, 0b00010, 0b00001 }
-	// []byte{ 0x10, 0x08, 0x04, 0x02, 0x01 }
-	bits = []byte{16, 8, 4, 2, 1}
+	// []int{ 0b10000, 0b01000, 0b00100, 0b00010, 0b00001 }
+	// []int{ 0x10, 0x08, 0x04, 0x02, 0x01 }
+	bits = []int{16, 8, 4, 2, 1}
 )
 
 // Location is a coordinate pair of latitude, longitude (y, x)
@@ -149,8 +149,8 @@ func Decode(geohash string) Region {
 	return NewRegion(NewLocation(minLatitude, minLongitude), NewLocation(maxLatitude, maxLongitude))
 }
 
-// GetNeighbors returns a map of the 8 adjacent neighbouring geohashes of the given geohash within the GeoHasher region.
-func GetNeighbors(geohash string) map[string]string {
+// Neighbours returns a map of the 8 adjacent neighbouring geohashes of the given geohash with the same precision
+func Neighbours(geohash string) map[string]string {
 	region := Decode(geohash)
 	/// width and height are deltas for calculating the neighbours
 	width := math.Abs(region.Max().Longitude() - region.Min().Longitude())
@@ -173,6 +173,9 @@ func GetNeighbors(geohash string) map[string]string {
 
 // Valid checks if all the characters in a geohash are valid base32/geohash characters
 func Valid(geohash string) bool {
+	if len(geohash) < 1 {
+		return false
+	}
 	for _, c := range []byte(geohash) {
 		if i := bytes.IndexByte(base32, c); i == -1 {
 			return false

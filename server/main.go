@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,50 +12,37 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+const (
+	bucket = "geohash"
+)
+
 type server struct {
 	db *bolt.DB
+	bucket []byte
 }
 
-func (app *server) set(bucket, geohash, data string) error {
+func (app *server) set(geohash, data []byte) error {
 	return app.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
-		}
-		err = b.Put([]byte(geohash), []byte(data))
-		if err != nil {
-			return err
-		}
-		return nil
+		b := tx.Bucket(app.bucket)
+		return b.Put([]byte(geohash), []byte(data))
 	})
 }
 
-func (app *server) get(bucket, geohash string) string {
-	var data []byte
+func (app *server) get(geohash []byte) string {
+	var data bytes.Buffer
 	app.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		if b == nil {
-			return nil
-		}
-		data = b.Get([]byte(geohash))
+		b := tx.Bucket(app.bucket)
+		data.Write(b.Get(geohash))
 		return nil
 	})
-	if data == nil {
-		return ""
-	}
-	return string(data)
+	return data.String()
 }
 
-func (app *server) getPrefix(bucket, geohash string) map[string]string {
+func (app *server) getPrefix(geohash []byte) map[string]string {
 	region := make(map[string]string)
 	app.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		if b == nil {
-			return nil
-		}
-		c := b.Cursor()
-		prefix := []byte(geohash)
-		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+		c := tx.Bucket(app.bucket).Cursor()
+		for k, v := c.Seek(geohash); k != nil && bytes.HasPrefix(k, geohash); k, v = c.Next() {
 			region[string(k)] = string(v)
 		}
 		return nil
@@ -65,16 +51,11 @@ func (app *server) getPrefix(bucket, geohash string) map[string]string {
 }
 
 func (app *server) getData(c echo.Context) error {
-	data := app.get(c.Param("bucket"), c.Param("geohash"))
-	if data == "" {
-		return echo.NewHTTPError(http.StatusNotFound, "Geohash not found in bucket")
+	data := app.get([]byte(c.Param("geohash")))
+	if len(data) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "Geohash not found")
 	}
 	return c.String(http.StatusOK, string(data))
-}
-
-func (app *server) getAllData(c echo.Context) error {
-	data := app.getPrefix(c.Param("bucket"), c.Param("geohash"))
-	return c.JSON(http.StatusOK, data)
 }
 
 func (app *server) postData(c echo.Context) error {
@@ -85,14 +66,36 @@ func (app *server) postData(c echo.Context) error {
 	if len(data) == 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, "Body must have non-zero length")
 	}
-	app.set(c.Param("bucket"), c.Param("geohash"), string(data))
-	return c.String(http.StatusCreated, fmt.Sprintf("%s/%s", c.Param("bucket"), c.Param("geohash")))
+	app.set([]byte(c.Param("geohash")), data)
+	return c.String(http.StatusCreated, c.Param("geohash"))
+}
+
+func (app *server) getRegionData(c echo.Context) error {
+	data := app.getPrefix([]byte(c.Param("geohash")))
+	if len(data) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "No geohashes found within region")
+	}
+	return c.JSON(http.StatusOK, data)
+}
+
+func (app *server) getNeighbourData(c echo.Context) error {
+	data := make(map[string]map[string]string)
+	for k, v := range geohash.Neighbours(c.Param("geohash")) {
+		val := app.getPrefix([]byte(v))
+		if len(val) > 0 {
+			data[k] = val
+		}	
+	}
+	if len(data) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "No geohashes found within neighbours")
+	}
+	return c.JSON(http.StatusOK, data)
 }
 
 // ValidateGeohash is a MiddlewareFunc that checks that the given geohash URL parameter is valid
 func ValidateGeohash(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if !geohash.Valid(c.Param(("geohash"))) {
+		if !geohash.Valid(c.Param("geohash")) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid character in geohash (base32)")
 		}
 		return next(c)
@@ -100,7 +103,9 @@ func ValidateGeohash(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func main() {
+	e := echo.New()
 	app := new(server)
+	
 	db, err := bolt.Open("geohash.db", 0600, nil)
 	if err != nil {
 		log.Fatalln(err)
@@ -108,21 +113,30 @@ func main() {
 	app.db = db
 	defer app.db.Close()
 
-	e := echo.New()
-
+	app.bucket = []byte(bucket)
+	err = app.db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(app.bucket)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		e.Logger.Fatal(err)
+	}
+	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost},
 	}))
-
 	e.Use(ValidateGeohash)
-
-	e.GET("/:bucket/:geohash", app.getData)
-	e.POST("/:bucket/:geohash", app.postData)
-	e.GET("/:bucket/:geohash/all", app.getAllData)
+	//Routes
+	e.GET("/:geohash", app.getData)
+	e.POST("/:geohash", app.postData)
+	e.GET("/:geohash/region", app.getRegionData)
+	e.GET("/:geohash/neighbours", app.getNeighbourData)
 	e.Logger.Fatal(e.Start(":3000"))
 
 }
