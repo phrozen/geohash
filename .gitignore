@@ -5,4 +5,6 @@ example/
 
 # Database files
 *.db
-database.go
+
+# Mac temps
+.DS_Store
