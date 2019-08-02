@@ -22,10 +22,9 @@ func RegionTest(t *testing.T) {
 }
 
 func EncodeTest(t *testing.T) {
-	// tests default (globe) Encoding
-	assert.Equal(t, Encode(20.644012, -103.416807), "9ewmqwnhjdz8")
+	assert.Equal(t, Encode(20.644012, -103.416807, 12), "9ewmqwnhjdz8")
 }
 
 func DecodeTest(t *testing.T) {
-
+	
 }

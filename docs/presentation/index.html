@@ -1,49 +1,560 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+	<title>GeoHash</title>
 
-		<link rel="stylesheet" href="css/reset.css">
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/black.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/monokai.css">
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/monokai.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
+	<style>
+		.reveal .slides {
+			max-width: 1200px !important;
+		}
+		.grid {
+			display: flex;
+		}
+		.col {
+			flex: 1;
+		}
+		img {
+			max-height: 540px !important;
+		}
+		img.h320 {
+			max-height: 320px !important;
+		}
+		img.circle {
+			border-radius: 50%;
+		}
+		.center {
+			text-align: center !important;
+		}
+		tr.center td {
+			text-align: center;
+		}
+		.micro {
+			font-size: 0.25em !important;
+		}
+		.violet {
+			color: #cc99ee;
+		}
+		.green {
+			color: greenyellow;
+		}
+		.red {
+			color: crimson;
+		}
+		.yellow {
+			color: #FFEB3B;
+		}
+		code {
+			max-height: 720px !important;
+		}
+
+	</style>
+
+	<!-- Place your kit's code here -->
+	<script src="https://kit.fontawesome.com/f27286fc85.js"></script>
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement( 'link' );
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName( 'head' )[0].appendChild( link );
+	</script>
+</head>
+<body>
+	<div class="reveal">
+		<div class="slides">
+
+			<section id="titulo">
+				<h1>GeoHash</h1>
+				<h3>el aguachile del indexado espacial</h3>
+				<p><small>-- Guillermo Estrada <a href="https://twitter.com/phrzn">@phrzn</a></small></p>
+			</section>
+
+			<section id="que">
+				<section>
+					<h1>¿Qué es GeoHash?</h1>
+				</section>
+				<section>
+					<h3>Primero lo primero...</h3>
+					<br>
+					<p>
+						<span style="color: cornflowerblue;"><i class="fa fa-fw fa-file-alt fa-3x"></i></span>
+						<span class="fragment highlight-green"><i class="fa fa-fw fa-arrow-right fa-3x"></i></span>
+						<span><i class="fa fa-fw fa-laptop-code fa-3x"></i></span>
+						<span class="fragment highlight-green"><i class="fa fa-fw fa-arrow-right fa-3x"></i></span>
+						<span style="color: crimson;"><i class="fa fa-fw fa-file-alt fa-3x"></i></span>
+					</p>
+					<br>
+					<h3>¿Qué es un hash?</h3>
+
+					<aside class="notes">
+						Una función hash es aquella que a través de un algoritmo matemático, transforma un bloque cualquiera de datos,
+						en una representación única (optimamente) de esa información. Normalmente representada en string.
+
+						Puede ser de distintas longitudes, codificaciones, criptográficas, sumas, destructiva, etc...
+					</aside>
+				</section>
+				<section>
+					<h3>GeoHash</h3>
+					<ul>
+						<li>Es un <strong class="red">algoritmo de codificación geográfica</strong> de <u>dominio público</u> creado por Gustavo Niemeyer (2008).</li>
+						<li>Es una <strong class="red">estructura de datos de jerarquía espacial</strong> que subdivide el espacio en regiones en forma de cuadrícula.</li>
+						<li>Es una de las muchas aplicaciones de las <strong class="red">curvas de órden Z</strong> y en general de las curvas de llenado de espacio.</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Al César lo que és del César...</h3>
+					<div class="grid">
+						<div class="col">
+							<img class="circle h320" src="https://pbs.twimg.com/profile_images/467317591241805824/vaeuBf-f_400x400.png">
+							<p>Go Developer</p>
+						</div>
+						<div class="col">
+							<p>
+								Parte del equipo de Canonical desde septiembre del 2005. 
+								Author/colaborador de proyectos como Landscape, Juju y Snap.
+							</p>
+							<p><a href="https://twitter.com/gniemeyer">@gniemeyer</a></p>
+							<p><a href="http://niemeyer.net/">niemeyer.net</a></p>
+						</div>
+					</div>
+				</section>
+				<section>
+					<h3>Otra vez... ¿qué era?</h3>
+					<p>
+						Es un algoritmo de una <strong class="red">función hash</strong> que consume coordenadas geográficas (latitud, longitud),
+						y produce hashes (cadenas de caracteres) de <strong class="red">precisión variable</strong> que corresponden a esa ubicación.
+					</p>
+				</section>
+				<section>
+					<h3>Ejemplo</h3>
+					<p>Coordenadas: (20.644275, -103.415962)</p>
+					<ol>
+						<li>9</li>
+						<li>9e</li>
+						<li>9ew</li>
+						<li>9ewm</li>
+						<li>9ewmq</li>
+						<li>9ewmqw</li>
+						<li>9ewmqwn</li>
+					</ol>
+				</section>
+				<section>
+					<h3>¿Cómo por qué requiero precisión?</h3>
+					<p>
+						El algoritmo funciona subdividiendo el mapa y codificando la región resultante en una versión modificada de base32
+						(dígitos del 0 al 9 y alfabeto en minúsculas, excluyendo [ a, i, l, o] ). Los geohashes representan regiones del mapa,
+						por lo tanto, más caracteres nos dan una mayor precisión.
+					</p>
+				</section>
+			</section>
+
+			<section id="como">
+				<section>
+					<h1>Algoritmo</h1>
+				</section>
+				<section>
+					<p>Comenzamos con las coordenadas que queremos codificar. <small>(20.644275, -103.415962)</small></p>
+					<img src="img/01.jpg" >
+					<small class="micro">Mapa cortesía de: <a href="https://simplemaps.com/resources/svg-world">https://simplemaps.com/resources/svg-world</a></small>
+				</section>
+				<section>
+					<p>Partimos el mapa en 2 por su longitud y tomamos la región que corresponde. <small>0 si es menor y 1 si es mayor.</small></p>
+					<img src="img/02.jpg" >
+				</section>
+				<section>
+					<p>Ahora partimos la sección por su latitud y tomamos región la que corresponde. <small>0 si es menor y 1 si es mayor.</small></p>
+					<img src="img/03.jpg" >
+				</section>
+				<section>
+					<p>Repetimos el algoritmo con la siguiente sección por longitud. <small>(bits impares)</small></p>
+					<img src="img/04.jpg" >
+				</section>
+				<section>
+					<p>Y una vez más por latitud. <small>(bits pares)</small></p>
+					<img src="img/05.jpg" >
+				</section>
+				<section>
+					<p>Con una última vez por su longitud juntamos 5 bits.</p>
+					<img src="img/06.jpg" >
+				</section>
+				<section>
+					<p>Y codificamos esos 5 bits en base32.</p>
+					<img src="img/07.jpg" >
+				</section>
+				<section>
+					<table>
+						<p>Continuamos con el proceso cuantas veces queramos hasta la precisión deseada.</p>
+						<!-- 9ewmqwn 01001 01101 11100 10011 10110 11100 10100 -->
+						<tr class="center">
+							<td>9</td>
+							<td>e</td>
+							<td>w</td>
+							<td>m</td>
+							<td>q</td>
+							<td>w</td>
+							<td>n</td>
+						</tr>
+						<tr>
+							<td>01001</td>
+							<td>01101</td>
+							<td>11100</td>
+							<td>10011</td>
+							<td>10110</td>
+							<td>11100</td>
+							<td>10100</td>
+						</tr>
+					</table>
+					<p><small>Aproximadamente: ( 20.644 , -103.4164 )</small></p>
+					<small>Cada 5 bits nos dan un símbolo extra en base32 y mayor precisión.</small>
+				</section>
+				<section id="sizes">	
+					<table style="font-size: 0.65em;">
+						<tbody>
+						<tr>
+							<th>Length</th>
+							<th>Cell width</th>
+							<th>Cell height</th>
+						</tr>
+						<tr>
+							<td>1</td>
+							<td>≤ 5,000km</td>
+							<td>5,000km</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>≤ 1,250km</td>
+							<td>625km</td>
+						</tr>
+						<tr>
+							<td>3</td>
+							<td>≤ 156km</td>
+							<td>156km</td>
+						</tr>
+						<tr>
+							<td>4</td>
+							<td>≤ 39.1km</td>
+							<td>19.5km</td>
+						</tr>
+						<tr>
+							<td>5</td>
+							<td>≤ 4.89km</td>
+							<td>4.89km</td>
+						</tr>
+						<tr>
+							<td>6</td>
+							<td>≤ 1.22km</td>
+							<td>0.61km</td>
+						</tr>
+						<tr>
+							<td>7</td>
+							<td>≤ 153m</td>
+							<td>153m</td>
+						</tr>
+						<tr>
+							<td>8</td>
+							<td>≤ 38.2m</td>
+							<td>19.1m</td>
+						</tr>
+						<tr>
+							<td>9</td>
+							<td>≤ 4.77m</td>
+							<td>4.77m</td>
+						</tr>
+						<tr>
+							<td>10</td>
+							<td>≤ 1.19m</td>
+							<td>0.596m</td>
+						</tr>
+						<tr>
+							<td>11</td>
+							<td>≤ 149mm</td>
+							<td>149mm</td>
+						</tr>
+						<tr>
+							<td>12</td>
+							<td>≤ 37.2mm</td>
+							<td>18.6mm</td>
+						</tr>
+						</tbody>
+					</table>
+					<br>
+					<small class="micro">Fuente: 
+						<a href="https://www.movable-type.co.uk/scripts/geohash.html">
+						https://www.movable-type.co.uk/scripts/geohash.html</a>
+					</small>
+				</section>
+			</section>
+
+			<section id="porque">
+				<section>
+					<h1>¿Por qué usar GeoHash?</h1>
+				</section>
+				<section>
+					<h3>¡Véndemelo!</h3>
+					<ul>
+						<li>Elegante y fácil de implementar <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+						<li>Tamaño y eficiencia <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+						<li>Búsqueda e indexado espacial <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+						<li>Fácil de adaptar y compartir <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+					</ul>
+				</section>
+				<section>
+					<h3>Lugares cercanos</h3>
+					<table>
+						<tr class="fragment">
+							<td>Luxoft</td>
+							<td><code><span class="violet">9ewmqw</span>nv9</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>Phillip Morris - Cigatam</td>
+							<td><code><span class="violet">9ewmqw</span>s1p</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>Estadio Akron</td>
+							<td><code><span class="violet">9ewm</span>tthck</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>La Minerva</td>
+							<td><code><span class="violet">9ewm</span>x7et7</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>Catedral de Guadalajara</td>
+							<td><code><span class="violet">9ew</span>t8k1h8</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>Aeropuerto Miguel Hidalgo</td>
+							<td><code><span class="violet">9ew</span>sc29cj</code></td>
+						</tr>
+						<tr class="fragment">
+							<td>Malecón de Chapala</td>
+							<td><code><span class="violet">9ew</span>e7v4j0</code></td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<h3>Regiones</h3>
+					<img src="img/grid.jpg">
+				</section>
+				<section>
+					<h3>¿y la famosa curva de órden-Z?</h3>
+					<img src="img/zorder.jpg">
+				</section>
+			</section>
+
+			<section id="problemas">
+				<!-- Celestún  9gxwx a Mérida d58r2 -->
+				<section>
+					<h1>Problemas <span class="fragment">y soluciones
+						<span class="yellow"><i class="fas fa-fw fa-smile-wink"></i></span></span>
+					</h1>
+				</section>
+				<section>
+					<h3>¿No que éramos vecinos?</h3>
+					<img src="img/problem.jpg">
+
+					<aside class="notes">
+
+					</aside>
+				</section>
+				<section id="problemas">
+					<h3>La piedra en el zapato</h3>
+					<hr>
+					<div class="grid">
+						<div class="col">
+							<ul>
+								<br><br>
+								<li class="fragment grow">Búsqueda por región no siempre confiable <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+								<br>
+								<li class="fragment shrink">Dimensiones variables de la cuadrícula <span class="fragment red"><i class="fas fa-fw fa-times"></i></span></li>
+							</ul>
+						</div>
+						<div class="col">
+							<img class="circle "  src="img/roadblock.jpg">
+							<p class="micro center">
+								Photo by Matthew Hamilton on <a href="https://unsplash.com/photos/v_CxSroHKWg">Unsplash</a>
+							</p>
+						</div>
+					</div>
+				</section>
+				<section id="soluciones">
+					<h3>Y luego, ¿qué hago?</h3>
+					<hr>
+					<div class="fragment grid">
+						<div class="col">
+							<img class="circle "  src="img/neighbour.jpg">
+							<p class="micro center">
+								Photo by Nina Strehl on <a href="https://unsplash.com/photos/Ds0ZIA5gzc4">Unsplash</a>
+							</p>
+						</div>
+						<div class="col" style="font-size: 0.75em;">
+							<br>
+							<p class="center">
+								Búsqueda de vecinos (regiones adyacentes) por precisión variable.
+							</p>
+							<table>
+								<tbody>
+									<tr>
+										<td>9ewmt</td>
+										<td>9ewmw</td>
+										<td>9ewmx</td>
+									</tr>
+									<tr>
+										<td>9ewmm</td>
+										<td style="background-color: #cc99ee;">9ewmq</td>
+										<td>9ewmr</td>
+									</tr>
+									<tr>
+										<td>9ewmj</td>
+										<td>9ewmn</td>
+										<td>9ewmp</td>
+									</tr>
+								</tbody>
+							</table>
+							<p class="center">
+								Eficiente búsqueda espacial por proximidad con bases de datos.
+							</p>
+						</div>
+					</div>
+				</section>
+				<section>
+					<h3>Alfombra roja</h3>
+					<ul>
+						<li>Redis</li>
+						<li>MongoDB</li>
+						<li>Elasticsearch</li>
+						<li>HBase</li>
+						<li>Accumulo</li>
+					</ul>
+				</section>
+			</section>
+			<section id="demo">
+				<section>
+					<h1>Demo</h1>
+					<small>
+						JS Demo with Mapbox, Vue.js, Pure CSS and Axios
+					</small>
+				</section>
+				<section data-background-iframe="/" data-background-interactive>
+					
+				</section>
+			</section>
+
+			<section id="implementacion">
+				<section>
+					<h1>Implementación del algoritmo</h1>
+					<small>en Go...</small>
+				</section>
+				<section>
+					<h3>Requisitos</h3>
+					<ul>
+						<li>Ubicación</li>
+						<li>Región
+							<ul>
+								<li>Centro</li>
+							</ul>
+						</li>
+						<li>GeoHasher
+							<ul>
+								<li>Codificar</li>
+								<li>Decodificar</li>
+								<li>Encontrar Vecinos</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Ubicación</h3>
+					<pre><code class="go">
+type Location struct {
+	lat, lon float64
+}
+
+func NewLocation(latitude, longitude float64) Location {
+	return Location{lat: latitude, lon: longitude}
+}
+
+func (loc Location) Latitude() float64 {
+	return loc.lat
+}
+
+func (loc Location) Longitude() float64 {
+	return loc.lon
+}
+					</code></pre>
+				</section>
+				<section>
+					<h3>Región</h3>
+					<pre><code class="go">
+type Region struct {
+	min, max Location
+}
+
+func NewRegion(min, max Location) Region {
+	return Region{min: min, max: max}
+}
+
+func (r Region) Min() Location {
+	return r.min
+}
+
+func (r Region) Max() Location {
+	return r.max
+}
+
+func (r Region) Center() Location {
+	return NewLocation((r.min.lat+r.max.lat)/2, (r.min.lon+r.max.lon)/2)
+}
+					</code></pre>
+				</section>
+				<section>
+					<h3>Región</h3>
+					<pre><code class="go">
+type GeoHasher struct {
+	region    Region
+	precision int
+}
+
+func NewGeoHasher(region Region, precision int) *GeoHasher {
+	return &GeoHasher{
+		region:    region,
+		precision: precision,
+	}
+}
+
+func (gh *GeoHasher) Encode(latitude, longitude float64) string {...}
+
+					</code></pre>
+				</section>
+			</section>
 		</div>
+	</div>
 
-		<script src="js/reveal.js"></script>
+	<script src="js/reveal.js"></script>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true }
-				]
-			});
-		</script>
-	</body>
+	<script>
+		// More info about config & dependencies:
+		// - https://github.com/hakimel/reveal.js#configuration
+		// - https://github.com/hakimel/reveal.js#dependencies
+		Reveal.initialize({
+			dependencies: [
+				{ src: 'plugin/markdown/marked.js' },
+				{ src: 'plugin/markdown/markdown.js' },
+				{ src: 'plugin/notes/notes.js', async: true },
+				{ src: 'plugin/highlight/highlight.js', async: true }
+			]
+		});
+	</script>
+</body>
 </html>

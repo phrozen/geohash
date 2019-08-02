@@ -2,3 +2,7 @@
 
 # Example directory
 example/
+
+# Database files
+*.db
+database.go

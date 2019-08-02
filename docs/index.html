@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GeoHash Demo</title>
+    <style>
+        #app {
+            width: 100%;
+            height: 100%;
+        }
+        .pad {
+            padding: 1rem;
+        }
+        #map {
+            height: 100%;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #eeeeee;
+        }
+        table {
+            width: 100%;
+            font-size: 0.75em;
+            text-align: center;
+        }
+        .red {
+            color: red;
+        }
+        .green {
+            color: green;
+        }
+        .small {
+            font-size: 0.65em;
+            color: #666;
+        }
+        h3 {
+            margin: 0.25rem 0;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/grids-responsive-min.css">
+    <script src="geohash.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
+    <!-- Vuejs development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- Vuejs production version, optimized for size and speed -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+</head>
+<body>
+<div id="app" class="pure-g">
+    <div id="controls" class="pure-u-1 pure-u-lg-1-4">
+        <div class="pad">
+            <h3>GeoHash Demo</h3>
+            <form class="pure-form pure-form-stacked">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="location">Location:</label>
+                        <input id="location" class="pure-input-1" type="text" v-model.lazy="location" placeholder="Location" @change="updateLocation">
+                        <span class="pure-form-message">Aproximate: {{ aproximate }}</span>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="geohash">GeoHash:</label>
+                        <input id="geohash" class="pure-input-1" type="text" v-model="geohash" placeholder="GeoHash">
+                        <span class="pure-form-message">Diagonal: {{ diagonal }}km</span>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="precision">Precision:</label>
+                        <input id="precision" type="number" v-model="precision" min="1" max="12" step="1" @change="updateLocation">
+                    </div>
+                    <div class="pure-control-group">
+                       
+                    </div>
+                </fieldset>
+                <label>Neighbours:</label>
+                <table class="pure-table pure-table-bordered">
+                    <tr>
+                        <td style="cursor: nw-resize;" @click="geohash = neighbours.nw">{{ neighbours.nw }}</td>
+                        <td style="cursor: n-resize;" @click="geohash = neighbours.n">{{ neighbours.n }}</td>
+                        <td style="cursor: ne-resize;" @click="geohash = neighbours.ne">{{ neighbours.ne }}</td>
+                    </tr>
+                    <tr>
+                        <td style="cursor: w-resize;" @click="geohash = neighbours.w">{{ neighbours.w }}</td>
+                        <td style="background-color: white;">{{ geohash }}</td>
+                        <td style="cursor: e-resize;" @click="geohash = neighbours.e">{{ neighbours.e }}</td>
+                    </tr>
+                    <tr>
+                        <td style="cursor: sw-resize;" @click="geohash = neighbours.sw">{{ neighbours.sw }}</td>
+                        <td style="cursor: s-resize;" @click="geohash = neighbours.s">{{ neighbours.s }}</td>
+                        <td style="cursor: se-resize;" @click="geohash = neighbours.se">{{ neighbours.se }}</td>
+                    </tr>
+                </table>
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="server">Server URL:</label>
+                        <input id="server" class="pure-input-1" type="text" v-model.lazy="server" placeholder="http://localhost:3000">
+                    </div>
+
+                    <div class="pure-control-group">
+                        <label for="bucket">Namespace:</label>
+                        <input id="bucket" class="pure-input-1" type="text" v-model.lazy="bucket" placeholder="Namespace [bucket]">
+                    </div>
+    
+                    <button id="get" class="pure-button pure-button-primary" @click.prevent="get">GET</button>
+                    <button id="post" class="pure-button" @click.prevent="post">POST</button>
+                    <button id="all" class="pure-button pure-button-primary" @click.prevent="all">ALL</button>
+    
+                    <label for="request">Request:</label>
+                    <textarea id="request" class="pure-input-1" v-model="request"></textarea>
+                    <label for="response">Response: <span :class="[parseInt(code) < 299 ? 'green' : 'red']">{{ code }}</span></label>
+                    <textarea id="response" class="pure-input-1" v-model="response" readonly></textarea>
+                </fieldset>
+            </form>
+            <p class="small">
+                This demo, Golang geohash library and server created by 
+                <a href="https://github.com/phrozen/">Guillermo Estrada</a> using the fine technologies at: 
+                <a href="https://purecss.io/">Pure CSS</a>, 
+                <a href="https://vuejs.org/">Vue.js</a>, 
+                <a href="https://www.mapbox.com/">Mapbox</a> and 
+                <a href="https://github.com/axios/axios">Axios</a> for the demo,
+                <a href="https://echo.labstack.com/">Echo</a> and 
+                <a href="https://github.com/etcd-io/bbolt">BoltDB</a> for the 
+                <a href="https://golang.org/">Golang</a> server.
+                Javascript geohash library modified from <a href="https://github.com/chrisveness/latlon-geohash">Chriss Veness' - LatLon</a>. 
+                <a href="/presentation">Presentation</a> (spanish).
+            </p>
+        </div>
+    </div>
+    <div id="map" class="pure-u-1 pure-u-lg-3-4">
+
+    </div>
+</div>
+
+<script>
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    location: "",
+    aproximate: "",
+    coords: [],
+    geohash: "9ewmqwnv9",
+    region: {},
+    precision: 9,
+    neighbours: {},
+    diagonal: 0.0,
+    server: "http://localhost:3000",
+    bucket: "namespace",
+    request: "",
+    response: "",
+    code: ""
+  },
+  methods: {
+    // Haversine Formula
+    distance(lat1, lon1, lat2, lon2) {
+        let p = 0.017453292519943295;    // Math.PI / 180
+        let c = Math.cos;
+        let a = 0.5 - c((lat2 - lat1) * p)/2 + 
+                c(lat1 * p) * c(lat2 * p) * 
+                (1 - c((lon2 - lon1) * p))/2;
+        return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+    },
+    update() {
+        this.recalculate();
+        //console.log(this.location, this.precision, this.coords, this.geohash, this.region);
+        this.drawRegion("nw", this.neighbours.nw, Geohash.bounds(this.neighbours.nw));
+        this.drawRegion("n", this.neighbours.n, Geohash.bounds(this.neighbours.n));
+        this.drawRegion("ne", this.neighbours.ne, Geohash.bounds(this.neighbours.ne));
+
+        this.drawRegion("w", this.neighbours.w, Geohash.bounds(this.neighbours.w));
+        this.drawRegion("e", this.neighbours.e, Geohash.bounds(this.neighbours.e));
+
+        this.drawRegion("sw", this.neighbours.sw, Geohash.bounds(this.neighbours.sw));
+        this.drawRegion("s", this.neighbours.s, Geohash.bounds(this.neighbours.s));
+        this.drawRegion("se", this.neighbours.se, Geohash.bounds(this.neighbours.se));
+        // Geohash (center) drawn last for collision precedence (z-layer)
+        this.drawRegion("geohash", this.geohash, this.region);
+        
+    },
+    updateLocation() {
+        if (this.location) {
+            let c = this.location.split(",").map(function(x){return parseFloat(x.trim())});
+            if (c.length === 2) {
+                this.geohash = Geohash.encode(c[0], c[1], this.precision);
+            }
+        }
+    },
+    recalculate() {
+        this.precision = this.geohash.length;
+        this.region = Geohash.bounds(this.geohash);
+        let center = Geohash.center(this.region);
+        this.coords = [center.lat, center.lon];
+        this.aproximate = center.lat.toString() + ", " + center.lon.toString();
+        this.neighbours = Geohash.neighbours(this.geohash);
+        this.diagonal = this.distance(this.region.sw.lat, this.region.sw.lon, this.region.ne.lat, this.region.ne.lon).toFixed(6);
+    },
+    getRegionCoords(bounds) {
+        let height = Math.abs(bounds.ne.lat - bounds.sw.lat);
+        return [
+           [bounds.sw.lon, bounds.sw.lat], //sw
+           [bounds.sw.lon, bounds.sw.lat+height], //nw
+           [bounds.ne.lon, bounds.ne.lat], //ne
+           [bounds.ne.lon, bounds.ne.lat-height] //se
+        ];
+    },
+    drawRegion(id, hash, bounds) {
+        if ( !bounds ) {
+            console.log("Invalid region data!");
+            return;
+        }
+        if (this.map.getLayer(id)) {
+            this.map.removeLayer(id);
+            this.map.removeSource(id);
+            this.map.removeLayer(id+"-labels");
+            this.map.removeSource(id+"-labels");
+        }
+        let background = 'rgba(245, 200, 50, 0.2)';
+        let color = 'rgba(245, 200, 50, 0.5)';
+        if ( id === 'geohash' ) {
+            background = 'rgba(200, 100, 240, 0.4)';
+            color = 'rgba(200, 100, 240, 1.0)';
+        }
+        let c = Geohash.center(bounds);
+        this.map.addLayer({
+            'id': id,
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': [{
+                        'type:': 'Feature',
+                        'geometry': {
+                            'type': 'Polygon',
+                            'coordinates': [this.getRegionCoords(bounds)]
+                        }
+                    }]
+                }
+            },
+            'paint': {
+                'fill-color': background
+            }
+        });
+        this.map.addLayer({
+            'id': id+"-labels",
+            'type': 'symbol',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': [{
+                        'type': 'Feature',
+                        'properties': {
+                            'description': hash
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [c.lon, c.lat]
+                        }
+                    }]
+                }
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'text-size': 48-(this.precision*2)
+            },
+            'paint': {
+                'text-color': color,
+                'text-halo-color': 'rgba(0, 0, 0, 0.5)',
+                'text-halo-width': 2
+            }
+        });
+        this.map.easeTo({
+            center: this.coords.slice().reverse(),
+            zoom: precision < 8 ? (this.precision-1)*2 : (this.precision*2)+2
+        });
+        console.log((this.precision-1)*2);
+    },
+    get() {
+        console.log(this.server, this.bucket, this.geohash);
+        let vm = this;
+        axios.get(`${this.server}/${this.bucket}/${this.geohash}`)
+        .then(function (response) {
+            vm.code = response.status
+            vm.response = JSON.stringify(response.data)
+        })
+        .catch(function (error) {
+            vm.code = error.response.status
+            vm.response = error.response.data.message
+        });
+    },
+    post() {
+        console.log(this.server, this.bucket, this.geohash);
+        let vm = this;
+        axios.post(`${this.server}/${this.bucket}/${this.geohash}`, vm.request, {
+            headers: { 'Content-Type': 'text/plain' }
+        }).then(function (response) {
+            vm.code = response.status
+            vm.response = JSON.stringify(response.data)
+        })
+        .catch(function (error) {
+            vm.code = error.response.status
+            vm.response = error.response.data.message
+        });
+    },
+    all() {
+        console.log(this.server, this.bucket, this.geohash);
+        let vm = this;
+        axios.get(`${this.server}/${this.bucket}/${this.geohash}/all`)
+        .then(function (response) {
+            vm.code = response.status
+            vm.response = JSON.stringify(response.data)
+        })
+        .catch(function (error) {
+            vm.code = error.response.status
+            vm.response = error.response.data.message
+        });
+    }
+  },
+  mounted() {
+    this.recalculate();
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2p5azhkdjRoMGJ2NzNncHF1MWJ5eHR4cyJ9.b1xrfS-JNtNfBNRduZJqoA';
+    this.map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/dark-v9',
+        maxZoom: 24
+    });
+
+    let vm = this;
+    this.map.on('style.load', function() {
+        vm.update();
+    });
+    this.map.on('dblclick', function(e) {
+        vm.location = `${e.lngLat.lat}, ${e.lngLat.lng}`;
+        vm.updateLocation();
+    });
+
+  },
+  watch: {
+    geohash: function(newHash, oldHash) {
+        let len = newHash.length;
+        if (0 < len && len < 13 ) {
+            this.update();
+        } else {
+            this.geohash = oldHash;
+        }
+    },
+  }
+})
+
+
+</script>
+</body>
+</html>
