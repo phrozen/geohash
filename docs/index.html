@@ -98,11 +98,13 @@
                         <label for="server">Server URL:</label>
                         <input id="server" class="pure-input-1" type="text" v-model.lazy="server" placeholder="http://localhost:3000">
                     </div>
-    
-                    <button class="pure-button pure-button-primary" @click.prevent="getData">GET</button>
-                    <button class="pure-button" @click.prevent="postData">POST</button>
-                    <button class="pure-button pure-button-primary" @click.prevent="getRegion">REGION</button>
-                    <button class="pure-button" @click.prevent="getNeighbours">NEIGHBOURS</button>
+                    
+                    <div class="pure-button-group" role="group" aria-label="server requests">
+                        <button class="pure-button pure-button-primary" @click.prevent="getData">GET</button>
+                        <button class="pure-button" @click.prevent="postData">POST</button>
+                        <button class="pure-button pure-button-primary" @click.prevent="getRegion">REGION</button>
+                        <button class="pure-button" @click.prevent="getNeighbours">NEIGHBOURS</button>
+                    </div>
     
                     <label for="request">Request:</label>
                     <textarea id="request" class="pure-input-1" v-model="request"></textarea>

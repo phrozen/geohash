@@ -17,7 +17,7 @@ const (
 )
 
 type server struct {
-	db *bolt.DB
+	db     *bolt.DB
 	bucket []byte
 }
 
@@ -84,7 +84,7 @@ func (app *server) getNeighbourData(c echo.Context) error {
 		val := app.getPrefix([]byte(v))
 		if len(val) > 0 {
 			data[k] = val
-		}	
+		}
 	}
 	if len(data) == 0 {
 		return echo.NewHTTPError(http.StatusNotFound, "No geohashes found within neighbours")
@@ -103,16 +103,17 @@ func ValidateGeohash(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func main() {
+	// New Server
 	e := echo.New()
 	app := new(server)
-	
+	// Open database
 	db, err := bolt.Open("geohash.db", 0600, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	app.db = db
 	defer app.db.Close()
-
+	// Bucket creation
 	app.bucket = []byte(bucket)
 	err = app.db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(app.bucket)
