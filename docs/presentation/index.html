@@ -42,22 +42,22 @@
 			font-size: 0.25em !important;
 		}
 		.violet {
-			color: #cc99ee;
+			color: #cc99ee !important;
 		}
 		.green {
-			color: greenyellow;
+			color: greenyellow !important;
 		}
 		.red {
-			color: crimson;
+			color: crimson !important;
 		}
 		.yellow {
-			color: #FFEB3B;
+			color: #FFEB3B !important;
 		}
 		.blue {
-			color: #7CD7FF;
+			color: #7CD7FF !important;
 		}
 		.quiet {
-			color: #999999;
+			color: #999999 !important;
 		}
 		code {
 			max-height: 720px !important;
@@ -475,7 +475,7 @@
 			<section id="implementacion">
 				<section>
 					<h1>Implementación del algoritmo</h1>
-					<p>y servidor en Golang</p>
+					<p class="blue">y servidor en Golang</p>
 					<img class="logo" src="img/go.png">
 				</section>
 				<section id="requisitos">
@@ -512,7 +512,7 @@
 					</div>
 				</section>
 				<section>
-					<h3>Estructuras</h3>
+					<h3 class="green">Estructuras</h3>
 					<pre><code class="go">
 type Location struct {
 	lat, lon float64
@@ -531,7 +531,7 @@ func (r Region) Center() Location {
 					</code></pre>
 				</section>
 				<section>
-					<h3>Funciones</h3>
+					<h3 class="violet">Funciones</h3>
 					<pre><code class="go">
 func Encode(latitude, longitude float64, precision int) string {
 	...
@@ -555,7 +555,7 @@ func Validate(geohash string) bool {
 					</aside>
 				</section>
 				<section>
-					<h3>Servidor</h3>
+					<h3 class="red">Servidor</h3>
 					<p>Construiremos una REST JSON API para una key/value store basada en geohash.</p>
 					<pre><code>
 	GET        /:geohash
