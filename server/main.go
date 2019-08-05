@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -12,15 +13,18 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// default bucket
 const (
 	bucket = "geohash"
 )
 
+// server to store dependency data
 type server struct {
 	db     *bolt.DB
 	bucket []byte
 }
 
+// set stores data to the given geohash key
 func (app *server) set(geohash, data []byte) error {
 	return app.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(app.bucket)
@@ -28,16 +32,18 @@ func (app *server) set(geohash, data []byte) error {
 	})
 }
 
-func (app *server) get(geohash []byte) string {
+// get returns the data (if any) stored in the geohash key
+func (app *server) get(geohash []byte) []byte {
 	var data bytes.Buffer
 	app.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(app.bucket)
 		data.Write(b.Get(geohash))
 		return nil
 	})
-	return data.String()
+	return data.Bytes()
 }
 
+// gets all the key/value pairs with the given prefix
 func (app *server) getPrefix(geohash []byte) map[string]string {
 	region := make(map[string]string)
 	app.db.View(func(tx *bolt.Tx) error {
@@ -50,15 +56,17 @@ func (app *server) getPrefix(geohash []byte) map[string]string {
 	return region
 }
 
-func (app *server) getData(c echo.Context) error {
+// GET /:geohash
+func (app *server) getDataHandler(c echo.Context) error {
 	data := app.get([]byte(c.Param("geohash")))
 	if len(data) == 0 {
 		return echo.NewHTTPError(http.StatusNotFound, "Geohash not found")
 	}
-	return c.String(http.StatusOK, string(data))
+	return c.JSON(http.StatusOK, string(data))
 }
 
-func (app *server) postData(c echo.Context) error {
+// POST /:geohash
+func (app *server) postDataHandler(c echo.Context) error {
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -67,10 +75,11 @@ func (app *server) postData(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Body must have non-zero length")
 	}
 	app.set([]byte(c.Param("geohash")), data)
-	return c.String(http.StatusCreated, c.Param("geohash"))
+	return c.JSON(http.StatusCreated, c.Param("geohash"))
 }
 
-func (app *server) getRegionData(c echo.Context) error {
+// GET /:geohash/region
+func (app *server) getRegionDataHandler(c echo.Context) error {
 	data := app.getPrefix([]byte(c.Param("geohash")))
 	if len(data) == 0 {
 		return echo.NewHTTPError(http.StatusNotFound, "No geohashes found within region")
@@ -78,7 +87,8 @@ func (app *server) getRegionData(c echo.Context) error {
 	return c.JSON(http.StatusOK, data)
 }
 
-func (app *server) getNeighbourData(c echo.Context) error {
+// GET /:geohash/neighbours
+func (app *server) getNeighboursDataHandler(c echo.Context) error {
 	data := make(map[string]map[string]string)
 	for k, v := range geohash.Neighbours(c.Param("geohash")) {
 		val := app.getPrefix([]byte(v))
@@ -106,6 +116,7 @@ func main() {
 	// New Server
 	e := echo.New()
 	app := new(server)
+
 	// Open database
 	db, err := bolt.Open("geohash.db", 0600, nil)
 	if err != nil {
@@ -113,6 +124,7 @@ func main() {
 	}
 	app.db = db
 	defer app.db.Close()
+
 	// Bucket creation
 	app.bucket = []byte(bucket)
 	err = app.db.Update(func(tx *bolt.Tx) error {
@@ -125,6 +137,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
+
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -133,11 +146,19 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPost},
 	}))
 	e.Use(ValidateGeohash)
-	//Routes
-	e.GET("/:geohash", app.getData)
-	e.POST("/:geohash", app.postData)
-	e.GET("/:geohash/region", app.getRegionData)
-	e.GET("/:geohash/neighbours", app.getNeighbourData)
-	e.Logger.Fatal(e.Start(":3000"))
 
+	//Routes
+	e.GET("/:geohash", app.getDataHandler)
+	e.POST("/:geohash", app.postDataHandler)
+	e.GET("/:geohash/region", app.getRegionDataHandler)
+	e.GET("/:geohash/neighbours", app.getNeighboursDataHandler)
+
+	// Set a default port and check env var for override
+	port := "3000"
+	if os.Getenv("PORT") != "" {
+		port = os.Getenv("PORT")
+	}
+
+	// Run server
+	e.Logger.Fatal(e.Start(":" + port))
 }
