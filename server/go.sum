@@ -12,6 +12,8 @@ github.com/mattn/go-isatty v0.0.8 h1:HLtExJ+uU2HOZ+wI0Tt5DtUDrx8yhUqDcp7fYERX4CE
 github.com/mattn/go-isatty v0.0.8/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/phrozen/geohash v0.0.0-20190719230307-37d137780bde h1:7Iom0L7i17TA1Y2TEnpFZW1TVItSDBuw9EmBhxbqVW8=
 github.com/phrozen/geohash v0.0.0-20190719230307-37d137780bde/go.mod h1:ZHKRvOLpsxOkbz/cZm4tBJhznHDYob0cpjDQPmPVNes=
+github.com/phrozen/geohash v0.0.0-20190805193049-8972cc51c1fc h1:BxgwZ9mWW/OUXye5vPHa0x/hIk3H+qdZUN2lNbE38Hc=
+github.com/phrozen/geohash v0.0.0-20190805193049-8972cc51c1fc/go.mod h1:ZHKRvOLpsxOkbz/cZm4tBJhznHDYob0cpjDQPmPVNes=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
