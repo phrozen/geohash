@@ -53,6 +53,9 @@
 		.yellow {
 			color: #FFEB3B;
 		}
+		.quiet {
+			color: #999999;
+		}
 		code {
 			max-height: 720px !important;
 		}
@@ -130,7 +133,7 @@
 						<div class="col">
 							<p>
 								Parte del equipo de Canonical desde septiembre del 2005. 
-								Author/colaborador de proyectos como Landscape, Juju y Snap.
+								Colaborador de proyectos como Landscape, Juju y Snap.
 							</p>
 							<p><a href="https://twitter.com/gniemeyer">@gniemeyer</a></p>
 							<p><a href="http://niemeyer.net/">niemeyer.net</a></p>
@@ -140,30 +143,30 @@
 				<section>
 					<h3>Otra vez... ¿qué era?</h3>
 					<p>
-						Es un algoritmo de una <strong class="red">función hash</strong> que consume coordenadas geográficas (latitud, longitud),
-						y produce hashes (cadenas de caracteres) de <strong class="red">precisión variable</strong> que corresponden a esa ubicación.
+						Es el algoritmo de una <strong class="red">función hash</strong> que consume coordenadas geográficas <span class="quiet">(latitud, longitud)</span>,
+						y produce hashes <span class="quiet">(cadenas de caracteres)</span> de <strong class="red">precisión variable</strong> que corresponden a esa ubicación.
+					</p>
+				</section>
+				<section>
+					<h3>¿Cómo por qué requiero precisión?</h3>
+					<p>
+						El algoritmo funciona <strong class="violet">subdividiendo</strong> el "mapa" y codificando la <strong class="violet">región</strong> resultante en una versión modificada de base32
+						<span class="quiet">(dígitos del 0 al 9 y el alfabeto en minúsculas, excluyendo [a,i,l,o])</span>. Los geohashes 
+						representan regiones de un mapa, y la precisión juega un papel importante en la <strong class="violet">búsqueda por proximidad</strong>.
 					</p>
 				</section>
 				<section>
 					<h3>Ejemplo</h3>
 					<p>Coordenadas: (20.644275, -103.415962)</p>
 					<ol>
-						<li>9</li>
-						<li>9e</li>
-						<li>9ew</li>
-						<li>9ewm</li>
-						<li>9ewmq</li>
-						<li>9ewmqw</li>
-						<li>9ewmqwn</li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9 <span class="quiet">&nbsp;(23, -113)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9e <span class="quiet">&nbsp;(19.7, -107)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ew <span class="quiet">&nbsp;(20.4, -103.4)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewm <span class="quiet">&nbsp;(20.65, -103.54)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmq <span class="quiet">&nbsp;(20.632, -103.425)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmqw <span class="quiet">&nbsp;(20.6461, -103.42)</span></li>
+						<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmqwn <span class="quiet">&nbsp;(20.644, -103.4164)</span></li>
 					</ol>
-				</section>
-				<section>
-					<h3>¿Cómo por qué requiero precisión?</h3>
-					<p>
-						El algoritmo funciona subdividiendo el mapa y codificando la región resultante en una versión modificada de base32
-						(dígitos del 0 al 9 y alfabeto en minúsculas, excluyendo [ a, i, l, o] ). Los geohashes representan regiones del mapa,
-						por lo tanto, más caracteres nos dan una mayor precisión.
-					</p>
 				</section>
 			</section>
 
@@ -185,11 +188,11 @@
 					<img src="img/03.jpg" >
 				</section>
 				<section>
-					<p>Repetimos el algoritmo con la siguiente sección por longitud. <small>(bits impares)</small></p>
+					<p>Repetimos el algoritmo con la siguiente sección por longitud. <small>(bits pares [0, 2, 4, 6, 8, ... ])</small></p>
 					<img src="img/04.jpg" >
 				</section>
 				<section>
-					<p>Y una vez más por latitud. <small>(bits pares)</small></p>
+					<p>Y una vez más por latitud. <small>(bits impares [1, 3, 5, 7, 9, ... ])</small></p>
 					<img src="img/05.jpg" >
 				</section>
 				<section>
@@ -467,13 +470,13 @@
 				<section>
 					<h3>Requisitos</h3>
 					<ul>
-						<li>Ubicación</li>
-						<li>Región
+						<li class="fragment">Ubicación</li>
+						<li class="fragment">Región
 							<ul>
 								<li>Centro</li>
 							</ul>
 						</li>
-						<li>GeoHasher
+						<li class="fragment">Funciones
 							<ul>
 								<li>Codificar</li>
 								<li>Decodificar</li>
@@ -483,71 +486,71 @@
 					</ul>
 				</section>
 				<section>
-					<h3>Ubicación</h3>
+					<h3>Estructuras</h3>
 					<pre><code class="go">
 type Location struct {
 	lat, lon float64
 }
 
-func NewLocation(latitude, longitude float64) Location {
-	return Location{lat: latitude, lon: longitude}
-}
-
-func (loc Location) Latitude() float64 {
-	return loc.lat
-}
-
-func (loc Location) Longitude() float64 {
-	return loc.lon
-}
-					</code></pre>
-				</section>
-				<section>
-					<h3>Región</h3>
-					<pre><code class="go">
 type Region struct {
 	min, max Location
 }
 
-func NewRegion(min, max Location) Region {
-	return Region{min: min, max: max}
-}
-
-func (r Region) Min() Location {
-	return r.min
-}
-
-func (r Region) Max() Location {
-	return r.max
-}
-
 func (r Region) Center() Location {
-	return NewLocation((r.min.lat+r.max.lat)/2, (r.min.lon+r.max.lon)/2)
+	return NewLocation(
+		(r.min.lat+r.max.lat)/2,
+		(r.min.lon+r.max.lon)/2
+	)
 }
 					</code></pre>
 				</section>
 				<section>
-					<h3>Región</h3>
+					<h3>Funciones</h3>
 					<pre><code class="go">
-type GeoHasher struct {
-	region    Region
-	precision int
+func Encode(latitude, longitude float64, precision int) string {
+	...
 }
 
-func NewGeoHasher(region Region, precision int) *GeoHasher {
-	return &GeoHasher{
-		region:    region,
-		precision: precision,
-	}
+func Decode(geohash string) Region {
+	...
 }
 
-func (gh *GeoHasher) Encode(latitude, longitude float64) string {...}
+func Neighbours(geohash string) map[string]string {
+	...
+}
 
+func Validate(geohash string) bool {
+	...
+}
 					</code></pre>
+					<p class="center"><i class="fas fa-code fa"></i></p>
+					<aside class="notes">
+						Mostrar código completo en VSC.
+					</aside>
+				</section>
+				<section>
+					<h3>Servidor</h3>
+					<p>Construiremos una API para una key/value store basada en geohash.</p>
+					<pre><code>
+	GET        /:geohash
+	POST       /:geohash
+	GET        /:geohash/region
+	GET        /:geohash/neighbours
+	OPTIONS    /:geohash*
+	-------------------------------
+	PUT        /:geohash
+	DELETE     /:geohash
+					</code></pre>
+					<p class="center"><i class="fas fa-code fa"></i></p>
+					<aside class="notes">
+						Mostrar código completo en VSC y regresar al Demo.
+					</aside>
 				</section>
 			</section>
 		</div>
 	</div>
+
+
 
 	<script src="js/reveal.js"></script>
 

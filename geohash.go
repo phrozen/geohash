@@ -1,20 +1,5 @@
-// Package geohash ...
-// 
-// 
-// The default geohash specification covers the entire globe from [-90, -180] up to [90, 180]
-// with a variable precision. geohash can be applied to other coordinate systems, but the
-// geohashes will only work within that coordinate system.
-//
+// Package geohash provides encoding/decoding of base32 geohashes into coordinate pairs.
 // From: https://en.wikipedia.org/wiki/Geohash
-// geohash length	lat bits	lng bits	lat error	lng error	km error
-// 			1			2			3		 ±23		  ±23	 	  ±2500
-// 			2			5			5		 ±2.8	 	  ±5.6	 	  ±630
-// 			3			7			8		 ±0.70	 	  ±0.70	  	  ±78
-// 			4			10			10		 ±0.087	 	  ±0.18	  	  ±20
-// 			5			12			13		 ±0.022	 	  ±0.022	  ±2.4
-// 			6			15			15		 ±0.0027	  ±0.0055	  ±0.61
-// 			7			17			18		 ±0.00068	  ±0.00068	  ±0.076
-// 			8			20			20		 ±0.000085	  ±0.00017	  ±0.019package geohash
 package geohash
 
 import (
@@ -27,11 +12,10 @@ var (
 	base32 = []byte("0123456789bcdefghjkmnpqrstuvwxyz")
 	// Bitmask positions for 5 bit base32 encoding
 	// []int{ 0b10000, 0b01000, 0b00100, 0b00010, 0b00001 }
-	// []int{ 0x10, 0x08, 0x04, 0x02, 0x01 }
 	bits = []int{16, 8, 4, 2, 1}
 )
 
-// Location is a coordinate pair of latitude, longitude (y, x)
+// Location is a coordinate pair of latitude and longitude (y, x)
 type Location struct {
 	lat, lon float64
 }
@@ -79,34 +63,33 @@ func (r Region) Center() Location {
 
 // Encode a latitude/longitude pair into a geohash with the given precision.
 func Encode(latitude, longitude float64, precision int) string {
-
 	minLatitude, maxLatitude := -90.0, 90.0
 	minLongitude, maxLongitude := -180.0, 180.0
 	char, bit := 0, 0
-	// Even starts with longitude and toggles with each cycle
 	even := true
-
 	var geohash bytes.Buffer
+	// Encode to the given precision
 	for geohash.Len() < precision {
 		if even { // LONGITUDE
 			mid := (minLongitude + maxLongitude) / 2
-			if longitude > mid {	// EAST
+			if longitude > mid { // EAST
 				char |= bits[bit]
 				minLongitude = mid
-			} else {				// WEST
+			} else { // WEST
 				maxLongitude = mid
 			}
 		} else { // LATITUDE
 			mid := (minLatitude + maxLatitude) / 2
-			if latitude > mid {		// NORTH
+			if latitude > mid { // NORTH
 				char |= bits[bit]
 				minLatitude = mid
-			} else {				//SOUTH
+			} else { //SOUTH
 				maxLatitude = mid
 			}
 		}
-		even = !even
+		even = !even // toggle lat/lon
 
+		// Every 5 bits, encode a character and reset
 		if bit < 4 {
 			bit++
 		} else {
@@ -132,24 +115,24 @@ func Decode(geohash string) Region {
 			mask := bits[i]
 			if even { // longitude
 				if decimal&mask != 0 {
-					minLongitude = (minLongitude + maxLongitude) / 2	// EAST
+					minLongitude = (minLongitude + maxLongitude) / 2 // EAST
 				} else {
-					maxLongitude = (minLongitude + maxLongitude) / 2	// WEST
+					maxLongitude = (minLongitude + maxLongitude) / 2 // WEST
 				}
 			} else { // latitude
 				if decimal&mask != 0 {
-					minLatitude = (minLatitude + maxLatitude) / 2		// NORTH
+					minLatitude = (minLatitude + maxLatitude) / 2 // NORTH
 				} else {
-					maxLatitude = (minLatitude + maxLatitude) / 2		// SOUTH
+					maxLatitude = (minLatitude + maxLatitude) / 2 // SOUTH
 				}
 			}
-			even = !even
+			even = !even // toggle lat/lon
 		}
 	}
 	return NewRegion(NewLocation(minLatitude, minLongitude), NewLocation(maxLatitude, maxLongitude))
 }
 
-// Neighbours returns a map of the 8 adjacent neighbouring geohashes of the given geohash with the same precision
+// Neighbours calculates the 8 adjacent neighbouring geohashes with the same precision
 func Neighbours(geohash string) map[string]string {
 	region := Decode(geohash)
 	/// width and height are deltas for calculating the neighbours
@@ -158,12 +141,12 @@ func Neighbours(geohash string) map[string]string {
 	latitude := region.Center().Latitude()
 	longitude := region.Center().Longitude()
 	precision := len(geohash)
-	
+	// return a map with the 8 adyacent neighbours
 	return map[string]string{
-		"n" : Encode(latitude+height, longitude, precision),
-		"s" : Encode(latitude-height, longitude, precision),
-		"e" : Encode(latitude, longitude+width, precision),
-		"w" : Encode(latitude, longitude-width, precision),
+		"n":  Encode(latitude+height, longitude, precision),
+		"s":  Encode(latitude-height, longitude, precision),
+		"e":  Encode(latitude, longitude+width, precision),
+		"w":  Encode(latitude, longitude-width, precision),
 		"ne": Encode(latitude+height, longitude+width, precision),
 		"se": Encode(latitude-height, longitude+width, precision),
 		"sw": Encode(latitude-height, longitude-width, precision),
