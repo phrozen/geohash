@@ -53,6 +53,9 @@
 		.yellow {
 			color: #FFEB3B;
 		}
+		.blue {
+			color: #7CD7FF;
+		}
 		.quiet {
 			color: #999999;
 		}
@@ -65,7 +68,10 @@
 			border: none !important;
 			max-height: 250px !important;
 			box-shadow: none !important;
-		} 
+		}
+		#requisitos li {
+			font-size: 0.75em;
+		}
 
 	</style>
 
@@ -438,22 +444,27 @@
 						</div>
 					</div>
 				</section>
-				<section>
-					<h3>Alfombra roja</h3>
+				<section data-background="img/red-carpet.jpg" style="text-shadow: 2px 2px #000000;">
+					<h3 style="text-shadow: 2px 2px #000000;">¿Quién lo vistió mejor?</h3>
 					<ul>
 						<li>Redis</li>
 						<li>MongoDB</li>
 						<li>Elasticsearch</li>
 						<li>HBase</li>
 						<li>Accumulo</li>
+						<li>Etc...</li>
 					</ul>
+					<br>
+					<p class="micro center">
+						Photo by Samuel Zeller <a href="https://unsplash.com/photos/8dILNVLS8UA">Unsplash</a>
+					</p>
 				</section>
 			</section>
 			<section id="demo">
 				<section>
 					<h1>Demo</h1>
 					<small>
-						JS Demo with Mapbox, Vue.js, Pure CSS and Axios
+						JS Demo con Mapbox, Vue.js, Pure CSS y Axios
 					</small>
 				</section>
 				<section data-background-iframe="/" data-background-interactive>
@@ -464,26 +475,41 @@
 			<section id="implementacion">
 				<section>
 					<h1>Implementación del algoritmo</h1>
-					<p>en</p>
+					<p>y servidor en Golang</p>
 					<img class="logo" src="img/go.png">
 				</section>
-				<section>
+				<section id="requisitos">
 					<h3>Requisitos</h3>
-					<ul>
-						<li class="fragment">Ubicación</li>
-						<li class="fragment">Región
+					<div class="grid">
+						<div class="col">
+							<br>
 							<ul>
-								<li>Centro</li>
+								<li class="fragment green"><i class="fas fa-project-diagram fa-fw"></i> Ubicación</li>
+								<li class="fragment green"><i class="fas fa-project-diagram fa-fw"></i> Región
+									<ul>
+										<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Centro</li>
+									</ul>
+								</li>
+								<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Codificar</li>
+								<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Decodificar</li>
+								<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Vecinos</li>
+								<li class="fragment red"><i class="fas fa-server fa-fw"></i> Servidor
+									<ul>
+										<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Guardar</li>
+										<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Leer</li>
+										<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Buscar región</li>
+										<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Buscar vecinos</li>
+									</ul>
+								</li>
 							</ul>
-						</li>
-						<li class="fragment">Funciones
-							<ul>
-								<li>Codificar</li>
-								<li>Decodificar</li>
-								<li>Encontrar Vecinos</li>
-							</ul>
-						</li>
-					</ul>
+						</div>
+						<div class="col">
+							<img class="circle" src="img/code.jpg">
+							<p class="micro center">
+								Photo by Chris Ried on <a href="https://unsplash.com/photos/ieic5Tq8YMk">Unsplash</a>
+							</p>
+						</div>
+					</div>
 				</section>
 				<section>
 					<h3>Estructuras</h3>
@@ -530,7 +556,7 @@ func Validate(geohash string) bool {
 				</section>
 				<section>
 					<h3>Servidor</h3>
-					<p>Construiremos una API para una key/value store basada en geohash.</p>
+					<p>Construiremos una REST JSON API para una key/value store basada en geohash.</p>
 					<pre><code>
 	GET        /:geohash
 	POST       /:geohash
@@ -545,6 +571,55 @@ func Validate(geohash string) bool {
 					<aside class="notes">
 						Mostrar código completo en VSC y regresar al Demo.
 					</aside>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h1>¡La última y nos vamos!</h1>
+				</section>
+				
+				<section>
+					<h3>¿Dónde la seguimos?</h3>
+					<div class="grid">
+						<div class="col">
+							<img class="circle" src="img/party.jpg">
+							<p class="micro center">
+								Photo by Jade Masri on <a href="https://unsplash.com/photos/74tlEYKgrBE">Unsplash</a>
+							</p>
+						</div>
+						<div class="col">
+							<br>
+							<ul>
+								<li>Distintas codificaciones y formatos</li>
+								<li>Sistemas de coordenadas acotados o virtuales</li>
+								<li>Otros sistemas (Open Location Code - Google Maps)</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+				<section>
+					<h3>¿Para qué reinventamos la rueda?</h3>
+					<p><a href="https://github.com/mmcloughlin/geohash">https://github.com/mmcloughlin/geohash</a></p>
+					<ul>
+						<li>Soporte para geohashes base32 y enteros <span class="blue">uint64</span></li>
+						<li>Optimización en ensamblador para la plataforma más común (<span class="blue">amd64</span>)</li>
+						<li>Pruebas, pruebas y más pruebas...</li>
+					</ul>
+					<p><a href="https://mmcloughlin.com/posts/geohash-assembly">
+						Geohash in Golang Assembly - Lessons in absurd optimization</a></p>
+				</section>
+				<section>
+					<h3>¡Tan claro como un charco de lodo!</h3>
+					<img class="circle h320"  src="img/questions.jpg">
+					<p class="micro center">
+						Photo by Camylla Battani on <a href="https://unsplash.com/photos/AoqgGAqrLpU">Unsplash</a>
+					</p>
+					<p>o... ¿a poco hay preguntas?</p>
+				</section>
+				<section>
+					<h3>Gracias totales</h3>
+					<img src="img/aguachile.jpg">
+					<small class="center">El rey del Agucahile - <span class="red">9ewmw3ge</span></small>
 				</section>
 			</section>
 		</div>
