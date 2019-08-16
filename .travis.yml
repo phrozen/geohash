@@ -11,9 +11,11 @@ before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
+  - go get -t -v ./...
 
 script:
   - go test -coverprofile c.out ./...
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
 
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
