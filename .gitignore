@@ -8,3 +8,6 @@ example/
 
 # Mac temps
 .DS_Store
+
+# Binary
+server

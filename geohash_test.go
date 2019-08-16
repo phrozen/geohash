@@ -91,3 +91,10 @@ func TestValid(t *testing.T) {
 		assert.False(t, Valid(v))
 	}
 }
+
+func TestOutOfBounds(t *testing.T) {
+	// Min
+	assert.Equal(t, 0.0, fixOutOfBounds(-2.0, -1.0, 1.0))
+	// Max
+	assert.Equal(t, 0.0, fixOutOfBounds(2.0, -1.0, 1.0))
+}

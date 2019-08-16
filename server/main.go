@@ -1,97 +1,24 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
-	"github.com/labstack/echo/v4"
+	echo "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/phrozen/geohash"
-	bolt "go.etcd.io/bbolt"
 )
-
-// Database defines a simple Key/Value Store interface
-type Database interface {
-	Open() error
-	Close() error
-	Set(key, value string) error
-	Get(key string) string
-	GetAllByPrefix(prefix string) map[string]string
-}
-
-// BoltDB implements Database with a BoltDB backend
-type BoltDB struct {
-	name string
-	bolt *bolt.DB
-}
-
-// NewBoltDB creates a new BoltDB handler
-func NewBoltDB(name string) *BoltDB {
-	return &BoltDB{name: name}
-}
-
-// Open creates or opens a new BoltDB database file with the filename: <name>.db
-func (db *BoltDB) Open() error {
-	// Create/Open database file
-	database, err := bolt.Open(db.name+".db", 0600, nil)
-	if err != nil {
-		return err
-	}
-	db.bolt = database
-	// Create default bucket
-	err = db.bolt.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(db.name))
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	return err
-}
-
-// Close closes the BoltDB database handler and returns it's error if any
-func (db *BoltDB) Close() error {
-	return db.bolt.Close()
-}
-
-// Set stores data to the given geohash key
-func (db *BoltDB) Set(geohash, data string) error {
-	return db.bolt.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(db.name))
-		return b.Put([]byte(geohash), []byte(data))
-	})
-}
-
-// Get returns the data (if any) stored in the geohash key
-func (db *BoltDB) Get(geohash string) string {
-	var data bytes.Buffer
-	db.bolt.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(db.name))
-		data.Write(b.Get([]byte(geohash)))
-		return nil
-	})
-	return data.String()
-}
-
-// GetAllByPrefix returns all the key/value pairs with the given prefix
-func (db *BoltDB) GetAllByPrefix(geohash string) map[string]string {
-	region := make(map[string]string)
-	db.bolt.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(db.name)).Cursor()
-		for k, v := c.Seek([]byte(geohash)); k != nil && bytes.HasPrefix(k, []byte(geohash)); k, v = c.Next() {
-			region[string(k)] = string(v)
-		}
-		return nil
-	})
-	return region
-}
 
 // App type is to store dependency data
 type App struct {
-	DB Database
+	DB   Database
+	echo *echo.Echo
+	port string
 }
 
 // NewApp creates a new App and initializes database with default bucket
@@ -103,6 +30,11 @@ func NewApp(db Database) *App {
 		log.Fatalf("Error opening the database: %v", err)
 		return nil
 	}
+	app.echo = echo.New()
+	app.port = "1985"
+	if os.Getenv("PORT") != "" {
+		app.port = os.Getenv("PORT")
+	}
 	return app
 }
 
@@ -112,6 +44,8 @@ func (app *App) Shutdown() {
 	if err != nil {
 		log.Fatalf("Error closing the database: %v", err)
 	}
+	log.Println("Database closed")
+	log.Println("Server shutdown gracefully")
 }
 
 // GET /:geohash
@@ -170,33 +104,50 @@ func ValidateGeohash(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func main() {
-	// New Server (App)
-	app := NewApp(NewBoltDB("geohash"))
-	defer app.Shutdown()
-
-	e := echo.New()
+// Configure sets all middleware chains and routes
+func (app *App) Configure() {
 	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	app.echo.Use(middleware.Logger())
+	app.echo.Use(middleware.Recover())
+	app.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost},
 	}))
-	e.Use(ValidateGeohash)
+	app.echo.Use(ValidateGeohash)
 
 	//Routes
-	e.GET("/:geohash", app.getDataHandler)
-	e.POST("/:geohash", app.postDataHandler)
-	e.GET("/:geohash/region", app.getRegionDataHandler)
-	e.GET("/:geohash/neighbours", app.getNeighboursDataHandler)
+	app.echo.GET("/:geohash", app.getDataHandler)
+	app.echo.POST("/:geohash", app.postDataHandler)
+	app.echo.GET("/:geohash/region", app.getRegionDataHandler)
+	app.echo.GET("/:geohash/neighbours", app.getNeighboursDataHandler)
+}
 
-	// Set a default port and check env var for override
-	port := "1985"
-	if os.Getenv("PORT") != "" {
-		port = os.Getenv("PORT")
+// Start the server on a separate goroutine and block until quit signal received
+func (app *App) Start(stop chan os.Signal) error {
+	go func() {
+		if err := app.echo.Start(":" + app.port); err != nil {
+			log.Println("Shutting down the server")
+		}
+	}()
+
+	<-stop // Blocks until signal received in channel
+	log.Println("Received OS shutdown signal")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.echo.Shutdown(ctx); err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
+}
 
-	// Run server
-	e.Logger.Fatal(e.Start(":" + port))
+func main() {
+	app := NewApp(NewBoltDB("geohash"))
+	defer app.Shutdown()
+
+	stop := make(chan os.Signal)
+	signal.Notify(stop, os.Interrupt)
+
+	app.Start(stop)
 }

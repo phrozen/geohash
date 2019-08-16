@@ -4,6 +4,7 @@ package geohash
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 )
 
@@ -65,6 +66,9 @@ func (r Region) Center() Location {
 func Encode(latitude, longitude float64, precision int) string {
 	minLatitude, maxLatitude := -90.0, 90.0
 	minLongitude, maxLongitude := -180.0, 180.0
+	latitude = fixOutOfBounds(latitude, minLatitude, maxLatitude)
+	longitude = fixOutOfBounds(longitude, minLongitude, maxLongitude)
+	fmt.Println(latitude, longitude)
 	char, bit := 0, 0
 	even := true
 	var geohash bytes.Buffer
@@ -102,7 +106,6 @@ func Encode(latitude, longitude float64, precision int) string {
 
 // Decode a geohash into a region
 func Decode(geohash string) Region {
-
 	minLatitude, maxLatitude := -90.0, 90.0
 	minLongitude, maxLongitude := -180.0, 180.0
 	// Even starts with longitude and toggles with each cycle
@@ -165,4 +168,15 @@ func Valid(geohash string) bool {
 		}
 	}
 	return true
+}
+
+// Rotates the map for out of bound coordinates
+func fixOutOfBounds(num, min, max float64) float64 {
+	if num < min {
+		return max + (num - min)
+	}
+	if num > max {
+		return min + (num - max)
+	}
+	return num
 }
