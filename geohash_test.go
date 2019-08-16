@@ -17,7 +17,7 @@ var geohashTests = []struct {
 	{41.90216070037718, 12.453725061736066, "sr2y7kh9bbfk"},   // Italy - Vatican, Saint Peter's Basillica
 	{55.753730934309345, 37.61990186254636, "ucfv0j9vp0xz"},   // Moscow - Red Plaza, Lenin's Monument
 	{-33.85684190426881, 151.21525191838856, "r3gx2ux9dg0p"},  // Sydney - Opera House
-	{19.43265922422016, -99.13317967733457, "9g3w81t7mqpx"},   // Mexico - Mexico City Zocalo
+	{19.43265922422016, -99.13317967733457, "9g3w81t7mqpx"},   // Mexico - CDMX Zócalo
 }
 
 func TestLocation(t *testing.T) {
