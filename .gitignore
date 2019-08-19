@@ -9,3 +9,6 @@ example/
 # Mac temps
 .DS_Store
 
+# Certificate files
+*.crt
+*.key
