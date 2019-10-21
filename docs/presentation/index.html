@@ -35,6 +35,12 @@
 		.center {
 			text-align: center !important;
 		}
+		.left {
+			text-align: left !important;
+		}
+		.right {
+			text-align: right !important;
+		}
 		tr.center td {
 			text-align: center;
 		}
@@ -66,11 +72,14 @@
 			margin: 0 !important;
 			background-color: transparent !important;
 			border: none !important;
-			max-height: 250px !important;
+			max-height: 150px !important;
 			box-shadow: none !important;
 		}
 		#requisitos li {
 			font-size: 0.75em;
+		}
+		h1 {
+			text-shadow: 2px 2px 5px #333 !important;
 		}
 
 	</style>
@@ -91,14 +100,18 @@
 <div class="reveal">
 <div class="slides">
 
-	<section id="titulo">
+	<img src="img/luxoft.png" style="width: 110px; position: absolute; top: 0; left: 0;">
+
+	<section data-background="img/lux-bg.png" id="titulo">
+		<br><br>
 		<h1>GeoHash</h1>
-		<h3>el aguachile del indexado espacial</h3>
-		<p><small>-- Guillermo Estrada <a href="https://twitter.com/phrzn">@phrzn</a></small></p>
+		<h3>Indexing our space</h3>
+		<p><small>- Guillermo Estrada - <br><a href="https://twitter.com/phrzn">@phrzn</a></small></p>
+		<div class="left"><img src="img/tca.png" style="border: none;"></div>
 	</section>
 
 	<section id="indexado">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>¿Indexado espacial?</h1>
 			<small class="quiet">No es una banda de rock/metal alternativo... todavía...</small>
 		</section>
@@ -173,7 +186,7 @@
 	</section>
 
 	<section id="que">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>¿Qué es GeoHash?</h1>
 		</section>
 		<section>
@@ -252,7 +265,7 @@
 	</section>
 
 	<section id="como">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>Algoritmo</h1>
 		</section>
 		<section>
@@ -389,7 +402,7 @@
 	</section>
 
 	<section id="porque">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>¿Por qué usar GeoHash?</h1>
 		</section>
 		<section>
@@ -446,7 +459,7 @@
 
 	<section id="problemas">
 		<!-- Celestún  9gxwx a Mérida d58r2 -->
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>Problemas <span class="fragment">y soluciones
 				<span class="yellow"><i class="fas fa-fw fa-smile-wink"></i></span></span>
 			</h1>
@@ -535,8 +548,9 @@
 			</p>
 		</section>
 	</section>
+
 	<section id="demo">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>Demo</h1>
 			<small>
 				JS Demo con Mapbox, Vue.js, Pure CSS y Axios
@@ -548,7 +562,7 @@
 	</section>
 
 	<section id="implementacion">
-		<section>
+		<section data-background="img/lux-bg.png">
 			<h1>Implementación del algoritmo</h1>
 			<p class="blue">y servidor en Golang</p>
 			<img class="logo" src="img/go.png">
@@ -648,8 +662,9 @@ DELETE     /:geohash
 			</aside>
 		</section>
 	</section>
-	<section>
-		<section>
+
+	<section id="la-ultima">
+		<section data-background="img/lux-bg.png">
 			<h1>¡La última y nos vamos!</h1>
 		</section>
 		

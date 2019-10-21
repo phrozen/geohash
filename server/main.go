@@ -125,7 +125,7 @@ func (app *App) Configure() {
 // Start the server on a separate goroutine and block until quit signal received
 func (app *App) Start(stop chan os.Signal) error {
 	go func() {
-		if err := app.echo.StartTLS(":"+app.port, "server.crt", "server.key"); err != nil {
+		if err := app.echo.Start(":" + app.port); err != nil {
 			log.Println("Shutting down the server")
 		}
 	}()
