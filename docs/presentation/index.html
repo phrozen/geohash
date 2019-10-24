@@ -114,6 +114,15 @@
 		<section data-background="img/lux-bg.png">
 			<h1>¿Indexado espacial?</h1>
 			<small class="quiet">No es una banda de rock/metal alternativo... todavía...</small>
+			
+			<aside class="notes">
+				<ul>
+					<li>¿Qué es el indexado espacial?</li>
+					<li>¿Para qué sirve y con que se come?</li>
+					<li>Que retos tiene (estructuras de datos complejas, desempeño y persistencia)</li>
+					<li>¿Por qué nos dejamos escoger por la herramienta?</li>
+				</ul>
+			</aside>
 		</section>
 		<section>
 			<h3>La base está en los datos</h3>
@@ -126,11 +135,13 @@
 			</ul>
 
 			<aside class="notes">
-				Spatial Measurements: Computes line length, polygon area, the distance between geometries, etc.
-				Spatial Functions: Modify existing features to create new ones, for example by providing a buffer around them, intersecting features, etc.
-				Spatial Predicates: Allows true/false queries about spatial relationships between geometries. Examples include "do two polygons overlap" or 'is there a residence located within a mile of the area we are planning to build the landfill?' (see DE-9IM)
-				Geometry Constructors: Creates new geometries, usually by specifying the vertices (points or nodes) which define the shape.
-				Observer Functions: Queries which return specific information about a feature such as the location of the center of a circle
+				<ul>
+					<li>Spatial Measurements: Computes line length, polygon area, the distance between geometries, etc.</li>
+					<li>Spatial Functions: Modify existing features to create new ones, for example by providing a buffer around them, intersecting features, etc.</li>
+					<li>Spatial Predicates: Allows true/false queries about spatial relationships between geometries. Examples include "do two polygons overlap" or 'is there a residence located within a mile of the area we are planning to build the landfill?' (see DE-9IM)</li>
+					<li>Geometry Constructors: Creates new geometries, usually by specifying the vertices (points or nodes) which define the shape.</li>
+					<li>Observer Functions: Queries which return specific information about a feature such as the location of the center of a circle</li>
+				</ul>
 			</aside>
 		</section>
 
@@ -141,11 +152,11 @@
 					<ul>
 						<li>Geohash</li>
 						<li>HHCode</li>
-						<li>Grid (spatial index)</li>
-						<li>Z-order (curve)</li>
+						<li class="fragment highlight-green">Grid (spatial index)</li>
+						<li class="fragment highlight-green">Z-order (curve)</li>
+						<li>UB-tree</li>
 						<li>Quadtree</li>
 						<li>Octree</li>
-						<li>UB-tree</li>
 						<li>kd-tree</li>
 					</ul>
 				</div>
@@ -161,6 +172,12 @@
 					</ul>
 				</div>
 			</div>
+
+			<aside class="notes">
+				Estructuras complejas vs requerimientos simples.
+				Requerimientos y casos de uso de Geohash como herramienta correcta.
+				Ejemplos de usos.
+			</aside>
 		</section>
 
 		<section>
@@ -216,6 +233,12 @@
 				<li>Es una <strong class="red">estructura de datos de jerarquía espacial</strong> que subdivide el espacio en regiones en forma de cuadrícula.</li>
 				<li>Es una de las muchas aplicaciones de las <strong class="red">curvas de órden Z</strong> y en general de las curvas de llenado de espacio.</li>
 			</ul>
+
+			<aside class="notes">
+				¡Dominio Publico! (Sin licencia)
+				Grid
+				Imagen de 2D a 1D es un ejemplo de curva de orden-Z
+			</aside>
 		</section>
 		<section>
 			<h3>Al César lo que és del César...</h3>
@@ -233,6 +256,10 @@
 					<p><a href="http://niemeyer.net/">niemeyer.net</a></p>
 				</div>
 			</div>
+
+			<aside class="notes">
+				Gustavo Niemeyer ¿Como lo conocí? (mgo driver for Go and bson, goamz, yaml, etc...)
+			</aside>
 		</section>
 		<section>
 			<h3>Otra vez... ¿qué era?</h3>
@@ -413,6 +440,14 @@
 				<li>Búsqueda e indexado espacial <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
 				<li>Fácil de adaptar y compartir <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
 			</ul>
+
+			<aisde class="notes">
+				Hay implementaciones en TODO.<br>
+				Muy rapido y una vez optimizado es excesivo.<br>
+				Resueve trivialmente la busqueda por proximidad<br>
+				Geohashes enteros, sistemas de coordenadas personalizados.<br>
+				¡Strings!<br>
+			</aisde>
 		</section>
 		<section>
 			<h3>Lugares cercanos</h3>
@@ -469,7 +504,7 @@
 			<img src="img/problem.jpg">
 
 			<aside class="notes">
-
+				Comentar en la curvatura de la tierra y el grid no simetrico.
 			</aside>
 		</section>
 		<section id="problemas">
@@ -714,8 +749,6 @@ DELETE     /:geohash
 	</section>
 </div>
 </div>
-
-
 
 <script src="js/reveal.js"></script>
 
