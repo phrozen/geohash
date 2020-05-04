@@ -43,8 +43,8 @@
     <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/grids-responsive-min.css">
     <script src="geohash.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet' />
     <!-- Vuejs development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <!-- Vuejs production version, optimized for size and speed -->
@@ -333,7 +333,7 @@ var app = new Vue({
   },
   mounted() {
     this.recalculate();
-    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2p5azhkdjRoMGJ2NzNncHF1MWJ5eHR4cyJ9.b1xrfS-JNtNfBNRduZJqoA';
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2s5dDI2bmtqMWJnMTNrcG5mbXBrN2JkMyJ9.cr_VtZtzWUowL5hebxirCg';
     this.map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/dark-v9',

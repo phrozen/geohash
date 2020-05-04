@@ -3,6 +3,9 @@
 # Example directory
 example/
 
+# Server binary
+server/server
+
 # Database files
 *.db
 
@@ -12,3 +15,5 @@ example/
 # Certificate files
 *.crt
 *.key
+
+*.pptx
