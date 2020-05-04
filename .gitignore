@@ -17,3 +17,5 @@ server/server
 *.key
 
 *.pptx
+
+node_modules
