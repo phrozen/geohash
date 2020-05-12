@@ -31,7 +31,7 @@ func NewApp(db Database) *App {
 		return nil
 	}
 	app.echo = echo.New()
-	app.port = "1985"
+	app.port = "3000"
 	if os.Getenv("PORT") != "" {
 		app.port = os.Getenv("PORT")
 	}
