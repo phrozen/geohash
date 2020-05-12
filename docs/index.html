@@ -203,17 +203,58 @@ var app = new Vue({
            [bounds.ne.lon, bounds.ne.lat-height] //se
         ];
     },
+    removeLayer(id) {
+        if (this.map.getLayer(id)) {
+            this.map.removeLayer(id)
+            this.map.removeSource(id)
+        }
+    },
+    drawPoints(id, hashes) {
+        let layer = {
+            id,
+            type: 'symbol',
+            source: {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            },
+            layout: {
+                'icon-image': 'marker-15',
+                'icon-size': 2,
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'text-size': 24-(this.precision*2),
+            },
+            'paint': {
+                'text-color': 'rgba(255, 255, 255, 1.0)',
+                'text-halo-color': 'rgba(0, 0, 0, 0.5)',
+                'text-halo-width': 2
+            }
+        }
+        hashes.forEach(h => {
+            layer.source.data.features.push({
+                type: 'Feature',
+                properties: {
+                    description: h,
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: Geohash.coordinates(h),
+                }
+            })
+        });
+        this.map.addLayer(layer);
+        //console.log(layer)
+    },
     drawRegion(id, hash, bounds) {
         if ( !bounds ) {
             console.log("Invalid region data!");
             return;
         }
-        if (this.map.getLayer(id)) {
-            this.map.removeLayer(id);
-            this.map.removeSource(id);
-            this.map.removeLayer(id+"-labels");
-            this.map.removeSource(id+"-labels");
-        }
+        this.removeLayer(id)
+        this.removeLayer(id+'-labels')
         let background = 'rgba(245, 200, 50, 0.2)';
         let color = 'rgba(245, 200, 50, 0.5)';
         if ( id === 'geohash' ) {
@@ -275,7 +316,7 @@ var app = new Vue({
             center: this.coords.slice().reverse(),
             zoom: precision < 8 ? (this.precision-1)*2 : (this.precision*2)+2
         });
-        console.log((this.precision-1)*2);
+        //console.log((this.precision-1)*2);
     },
     getData() {
         console.log(this.server, this.geohash);
@@ -305,35 +346,57 @@ var app = new Vue({
         });
     },
     getRegion() {
+        this.removeLayer('region')
         console.log(this.server, this.geohash);
         let vm = this;
         axios.get(`${this.server}/${this.geohash}/region`)
         .then(function (response) {
             vm.code = response.status
             vm.response = JSON.stringify(response.data, null, 2)
+            let hashes = [];
+            Object.keys(response.data).forEach((gh) => {
+                hashes.push(gh);
+            })
+            vm.drawPoints('region', hashes);
         })
         .catch(function (error) {
-            vm.code = error.response.status
-            vm.response = error.response.data.message
+            if (error.response) {
+                vm.code = error.response.status
+                vm.response = error.response.data.message
+            } else {
+                console.error(error);
+            }
         });
     },
     getNeighbours() {
+        this.removeLayer('neighbours')
         console.log(this.server, this.geohash);
         let vm = this;
         axios.get(`${this.server}/${this.geohash}/neighbours`)
         .then(function (response) {
             vm.code = response.status
             vm.response = JSON.stringify(response.data, null, 2)
+            let hashes = []
+            Object.keys(response.data).forEach((r) => {
+                Object.keys(response.data[r]).forEach((gh) => {
+                    hashes.push(gh)
+                })
+            })
+            vm.drawPoints('neighbours', hashes);
         })
         .catch(function (error) {
-            vm.code = error.response.status
-            vm.response = error.response.data.message
+            if (error.response) {
+                vm.code = error.response.status
+                vm.response = error.response.data.message
+            } else {
+                console.error(error);
+            }
         });
     }
   },
   mounted() {
     this.recalculate();
-    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2s5dDI2bmtqMWJnMTNrcG5mbXBrN2JkMyJ9.cr_VtZtzWUowL5hebxirCg';
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2s5dnppMmhvMDRvZzNqbnRvdmZhZGYwdiJ9.aegtz8X8zPamQdoaSIfnjA';
     this.map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/dark-v9',

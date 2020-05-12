@@ -117,6 +117,11 @@ class Geohash {
         return { lat: Number(lat), lon: Number(lon) };
     }
 
+    static coordinates(geohash) {
+        let {lat, lon} = this.decode(geohash);
+        return [lon, lat];
+    }
+
     /**
      * Returns SW/NE latitude/longitude bounds of specified geohash.
      *
