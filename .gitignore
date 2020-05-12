@@ -16,6 +16,4 @@ server/server
 *.crt
 *.key
 
-*.pptx
-
 node_modules
