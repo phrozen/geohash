@@ -228,11 +228,11 @@ func TestInvalidGeohash(t *testing.T) {
 func TestAppConfiguration(t *testing.T) {
 	app := NewApp(&MockDB{make(map[string]string)})
 	// Test default port
-	assert.Equal(t, "1985", app.port)
-	// Setting new port
-	os.Setenv("PORT", "3000")
-	app = NewApp(&MockDB{make(map[string]string)})
 	assert.Equal(t, "3000", app.port)
+	// Setting new port
+	os.Setenv("PORT", "3001")
+	app = NewApp(&MockDB{make(map[string]string)})
+	assert.Equal(t, "3001", app.port)
 	app.Configure()
 	// 4 routes defined
 	//assert.GreaterOrEqual(t, 4, len(app.echo.Routes()))
