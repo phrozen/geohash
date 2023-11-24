@@ -226,6 +226,7 @@ func TestInvalidGeohash(t *testing.T) {
 }
 
 func TestAppConfiguration(t *testing.T) {
+	os.Setenv("PORT", "")
 	app := NewApp(&MockDB{make(map[string]string)})
 	// Test default port
 	assert.Equal(t, "3000", app.port)
@@ -240,7 +241,7 @@ func TestAppConfiguration(t *testing.T) {
 
 func TestAppStartAndGracefulShutdown(t *testing.T) {
 	app := NewApp(&MockDB{make(map[string]string)})
-	stop := make(chan os.Signal)
+	stop := make(chan os.Signal, 1)
 	go func() {
 		log.Println("Sleeping for 4 seconds to test server shutdown")
 		time.Sleep(2 * time.Second)
