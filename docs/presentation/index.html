@@ -5,13 +5,21 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 	<title>GeoHash</title>
-
+	<!--
 	<link rel="stylesheet" href="../revealjs/css/reset.css">
 	<link rel="stylesheet" href="../revealjs/css/reveal.css">
 	<link rel="stylesheet" href="../revealjs/css/theme/black.css">
 
-	<!-- Theme used for syntax highlighting of code -->
+	
 	<link rel="stylesheet" href="../revealjs/lib/css/monokai.css">
+	-->
+
+	<link rel="stylesheet" href="../reveal.js/dist/reset.css">
+	<link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+	<link rel="stylesheet" href="../reveal.js/dist/theme/black.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="../reveal.js/plugin/highlight/monokai.css">
 
 	<style>
 		.reveal .slides {
@@ -92,7 +100,7 @@
 		var link = document.createElement( 'link' );
 		link.rel = 'stylesheet';
 		link.type = 'text/css';
-		link.href = window.location.search.match( /print-pdf/gi ) ? '../revealjs/css/print/pdf.css' : '../revealjs/css/print/paper.css';
+		link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
 		document.getElementsByTagName( 'head' )[0].appendChild( link );
 	</script>
 </head>
@@ -100,24 +108,24 @@
 <div class="reveal">
 <div class="slides">
 
-	<section data-background="img/bg.jpg" id="titulo">
+	<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4" id="titulo">
 		<br><br>
 		<h1>GeoHash</h1>
 		<h3>El aguachile del indexado espacial</h3>
-		<p><small>
-			- Guillermo Estrada -
-			<br>
-			<a href="https://twitter.com/phrzn">@phrzn</a>
-			<br>
-			<a href="https://github.com/phrozen">github.com/phrozen</a>
-		</small></p>
+		<p>- Guillermo Estrada -</p>
+		<p style="color: #FFEB3B;"><small>Staff Software Engineer @ Brightcove, Inc</small></p>
+		<ul style="font-size: medium;">
+			<li><a href="https://twitter.com/phrzn"><i class="fa fa-fw fa-twitter"></i> phrzn</a></li>
+			<li><a href="https://github.com/phrozen"><i class="fa fa-fw fa-github"></i> phrozen</a></li>
+			<li><a href="https://www.linkedin.com/in/phrozen/"><i class="fa fa-fw fa-linkedin"></i> phrozen</a></li>
+		</ul>
 		<p class="micro center">
-			Photo by Pine Watt on <a href="https://unsplash.com/photos/aerial-shot-of-forest-2Hzmz15wGik?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
+			Photo by Andrew Stutesman on <a href="https://unsplash.com/photos/blue-green-and-yellow-world-map-l68Z6eF2peA">Unsplash</a>
 		</p>
 	</section>
 
 	<section id="indexado">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>¿Indexado espacial?</h1>
 			<small class="quiet">No es una banda de rock/metal alternativo... todavía...</small>
 			
@@ -209,7 +217,7 @@
 	</section>
 
 	<section id="que">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>¿Qué es GeoHash?</h1>
 		</section>
 		<section>
@@ -298,7 +306,7 @@
 	</section>
 
 	<section id="como">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>Algoritmo</h1>
 		</section>
 		<section>
@@ -435,7 +443,7 @@
 	</section>
 
 	<section id="porque">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>¿Por qué usar GeoHash?</h1>
 		</section>
 		<section>
@@ -459,12 +467,17 @@
 			<h3>Lugares cercanos</h3>
 			<table>
 				<tr class="fragment">
-					<td>Luxoft</td>
-					<td><code><span class="violet">9ewmqw</span>nv9</code></td>
+					<td>Brightcove</td>
+					<td><code><span class="violet">9ewmy</span>f0g1</code></td>
 				</tr>
 				<tr class="fragment">
-					<td>Phillip Morris - Cigatam</td>
-					<td><code><span class="violet">9ewmqw</span>s1p</code></td>
+					<td>La Tequila - Landmark</td>
+					<td><code><span class="violet">9ewmy</span>cbck</code></td>
+				</tr>
+				
+				<tr class="fragment">
+					<td>Estadio 3 de Marzo - UAG</td>
+					<td><code><span class="violet">9ewm</span>wxnwj</code></td>
 				</tr>
 				<tr class="fragment">
 					<td>Estadio Akron</td>
@@ -500,7 +513,7 @@
 
 	<section id="problemas">
 		<!-- Celestún  9gxwx a Mérida d58r2 -->
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>Problemas <span class="fragment">y soluciones
 				<span class="yellow"><i class="fas fa-fw fa-smile-wink"></i></span></span>
 			</h1>
@@ -591,7 +604,7 @@
 	</section>
 
 	<section id="demo">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>Demo</h1>
 			<small>
 				JS Demo con Mapbox, Vue.js, Pure CSS y Axios
@@ -603,7 +616,7 @@
 	</section>
 
 	<section id="implementacion">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>Implementación del algoritmo</h1>
 			<p class="blue">y servidor en Golang</p>
 			<img class="logo" src="img/go.png">
@@ -705,7 +718,7 @@ DELETE     /:geohash
 	</section>
 
 	<section id="la-ultima">
-		<section data-background="img/bg.jpg">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
 			<h1>¡La última y nos vamos!</h1>
 		</section>
 		
@@ -756,8 +769,25 @@ DELETE     /:geohash
 </div>
 </div>
 
-<script src="../revealjs/js/reveal.js"></script>
+<script src="../reveal.js/dist/reveal.js"></script>
+<script src="../reveal.js/plugin/notes/notes.js"></script>
+<script src="../reveal.js/plugin/markdown/markdown.js"></script>
+<script src="../reveal.js/plugin/highlight/highlight.js"></script>
+<script>
+	// More info about initialization & config:
+	// - https://revealjs.com/initialization/
+	// - https://revealjs.com/config/
+	Reveal.initialize({
+		hash: true,
 
+		// Learn about plugins: https://revealjs.com/plugins/
+		plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+	});
+</script>
+
+
+<!--
+<script src="../revealjs/js/reveal.js"></script>
 <script>
 	// More info about config & dependencies:
 	// - https://github.com/hakimel/reveal.js#configuration
@@ -771,5 +801,6 @@ DELETE     /:geohash
 		]
 	});
 </script>
+-->
 </body>
 </html>

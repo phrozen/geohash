@@ -5,6 +5,7 @@ example/
 
 # Server binary
 server/server
+*.exe
 
 # Database files
 *.db
