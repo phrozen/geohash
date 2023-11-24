@@ -1,431 +1,789 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GeoHash Demo</title>
-    <style>
-        #app {
-            width: 100%;
-            height: 100%;
-        }
-        .pad {
-            padding: 1rem;
-        }
-        #map {
-            height: 100%;
-        }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #eeeeee;
-        }
-        table {
-            width: 100%;
-            font-size: 0.75em;
-            text-align: center;
-        }
-        .red {
-            color: red;
-        }
-        .green {
-            color: green;
-        }
-        .small {
-            font-size: 0.65em;
-            color: #666;
-        }
-        h3 {
-            margin: 0.25rem 0;
-        }
-    </style>
-    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/grids-responsive-min.css">
-    <script src="geohash.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet' />
-    <!-- Vuejs development version, includes helpful console warnings -->
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <!-- Vuejs production version, optimized for size and speed -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>GeoHash</title>
+
+	<link rel="stylesheet" href="reveal.js/dist/reset.css">
+	<link rel="stylesheet" href="reveal.js/dist/reveal.css">
+	<link rel="stylesheet" href="reveal.js/dist/theme/black.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="reveal.js/plugin/highlight/monokai.css">
+
+	<style>
+		.reveal .slides {
+			max-width: 1200px !important;
+		}
+		.grid {
+			display: flex;
+		}
+		.col {
+			flex: 1;
+		}
+		img {
+			max-height: 540px !important;
+		}
+		img.h320 {
+			max-height: 320px !important;
+		}
+		img.circle {
+			border-radius: 50%;
+		}
+		.center {
+			text-align: center !important;
+		}
+		.left {
+			text-align: left !important;
+		}
+		.right {
+			text-align: right !important;
+		}
+		tr.center td {
+			text-align: center;
+		}
+		.micro {
+			font-size: 0.25em !important;
+		}
+		.violet {
+			color: #cc99ee !important;
+		}
+		.green {
+			color: greenyellow !important;
+		}
+		.red {
+			color: crimson !important;
+		}
+		.yellow {
+			color: #FFEB3B !important;
+		}
+		.blue {
+			color: #7CD7FF !important;
+		}
+		.quiet {
+			color: #999999 !important;
+		}
+		code {
+			max-height: 720px !important;
+		}
+		img.logo {
+			margin: 0 !important;
+			background-color: transparent !important;
+			border: none !important;
+			max-height: 150px !important;
+			box-shadow: none !important;
+		}
+		#requisitos li {
+			font-size: 0.75em;
+		}
+		h1 {
+			text-shadow: 2px 2px 5px #333 !important;
+		}
+
+	</style>
+
+	<!-- Place your kit's code here -->
+	<script src="https://kit.fontawesome.com/f27286fc85.js" crossorigin="anonymous"></script>
 </head>
 <body>
-<div id="app" class="pure-g">
-    <div id="controls" class="pure-u-1 pure-u-lg-1-4">
-        <div class="pad">
-            <h3>GeoHash Demo</h3>
-            <form class="pure-form pure-form-stacked">
-                <fieldset>
-                    <div class="pure-control-group">
-                        <label for="location">Location:</label>
-                        <input id="location" class="pure-input-1" type="text" v-model.lazy="location" placeholder="Location" @change="updateLocation">
-                        <span class="pure-form-message">Aproximate: {{ aproximate }}</span>
-                    </div>
-                    <div class="pure-control-group">
-                        <label for="geohash">GeoHash:</label>
-                        <input id="geohash" class="pure-input-1" type="text" v-model="geohash" placeholder="GeoHash">
-                        <span class="pure-form-message">Diagonal: {{ diagonal }}km</span>
-                    </div>
-                    <div class="pure-control-group">
-                        <label for="precision">Precision:</label>
-                        <input id="precision" type="number" v-model="precision" min="1" max="12" step="1" @change="updateLocation">
-                    </div>
-                    <div class="pure-control-group">
-                    </div>
-                </fieldset>
-                <label>Neighbours:</label>
-                <table class="pure-table pure-table-bordered">
-                    <tr>
-                        <td style="cursor: nw-resize;" @click="geohash = neighbours.nw">{{ neighbours.nw }}</td>
-                        <td style="cursor: n-resize;" @click="geohash = neighbours.n">{{ neighbours.n }}</td>
-                        <td style="cursor: ne-resize;" @click="geohash = neighbours.ne">{{ neighbours.ne }}</td>
-                    </tr>
-                    <tr>
-                        <td style="cursor: w-resize;" @click="geohash = neighbours.w">{{ neighbours.w }}</td>
-                        <td style="background-color: white;">{{ geohash }}</td>
-                        <td style="cursor: e-resize;" @click="geohash = neighbours.e">{{ neighbours.e }}</td>
-                    </tr>
-                    <tr>
-                        <td style="cursor: sw-resize;" @click="geohash = neighbours.sw">{{ neighbours.sw }}</td>
-                        <td style="cursor: s-resize;" @click="geohash = neighbours.s">{{ neighbours.s }}</td>
-                        <td style="cursor: se-resize;" @click="geohash = neighbours.se">{{ neighbours.se }}</td>
-                    </tr>
-                </table>
-                <fieldset>
-                    <div class="pure-control-group">
-                        <label for="server">Server URL:</label>
-                        <input id="server" class="pure-input-1" type="text" v-model.lazy="server" placeholder="http://localhost:3000">
-                    </div>
-                    
-                    <div class="pure-button-group" role="group" aria-label="server requests">
-                        <button class="pure-button pure-button-primary" @click.prevent="getData">GET</button>
-                        <button class="pure-button" @click.prevent="postData">POST</button>
-                        <button class="pure-button pure-button-primary" @click.prevent="getRegion">REGION</button>
-                        <button class="pure-button" @click.prevent="getNeighbours">NEIGHBOURS</button>
-                    </div>
-    
-                    <label for="request">Request:</label>
-                    <textarea id="request" class="pure-input-1" v-model="request"></textarea>
-                    <label for="response">Response: <span :class="[parseInt(code) < 299 ? 'green' : 'red']">{{ code }}</span></label>
-                    <textarea id="response" class="pure-input-1" v-model="response" rows="8" readonly></textarea>
-                </fieldset>
-            </form>
-            <p class="small">
-                This demo, Golang geohash library and server created by 
-                <a href="https://github.com/phrozen/">Guillermo Estrada</a> using the fine technologies at: 
-                <a href="https://purecss.io/">Pure CSS</a>, 
-                <a href="https://vuejs.org/">Vue.js</a>, 
-                <a href="https://www.mapbox.com/">Mapbox</a> and 
-                <a href="https://github.com/axios/axios">Axios</a> for the demo,
-                <a href="https://echo.labstack.com/">Echo</a> and 
-                <a href="https://github.com/etcd-io/bbolt">BoltDB</a> for the 
-                <a href="https://golang.org/">Golang</a> server.
-                Javascript geohash library modified from <a href="https://github.com/chrisveness/latlon-geohash">Chriss Veness' - LatLon</a>. 
-                All code, unless otherwise noted by their respective owners is covered by the MIT License.
-                <a href="./presentation/">Presentation</a> (spanish).
-            </p>
-        </div>
-    </div>
-    <div id="map" class="pure-u-1 pure-u-lg-3-4">
+<div class="reveal">
+<div class="slides">
 
-    </div>
+	<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4" id="titulo">
+		<br><br>
+		<h1>GeoHash</h1>
+		<h3>El aguachile del indexado espacial</h3>
+		<p>- Guillermo Estrada -</p>
+		<p style="color: #FFEB3B;"><small>Staff Software Engineer @ Brightcove, Inc</small></p>
+		<ul style="font-size: medium;">
+			<li><a href="https://twitter.com/phrzn"><i class="fa fa-fw fa-twitter"></i> phrzn</a></li>
+			<li><a href="https://github.com/phrozen"><i class="fa fa-fw fa-github"></i> phrozen</a></li>
+			<li><a href="https://www.linkedin.com/in/phrozen/"><i class="fa fa-fw fa-linkedin"></i> phrozen</a></li>
+		</ul>
+		<p class="micro center">
+			Photo by Andrew Stutesman on <a href="https://unsplash.com/photos/blue-green-and-yellow-world-map-l68Z6eF2peA">Unsplash</a>
+		</p>
+	</section>
+
+	<section id="indexado">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>¿Indexado espacial?</h1>
+			<small class="quiet">No es una banda de rock/metal alternativo... todavía...</small>
+			
+			<aside class="notes">
+				<ul>
+					<li>¿Qué es el indexado espacial?</li>
+					<li>¿Para qué sirve y con que se come?</li>
+					<li>Que retos tiene (estructuras de datos complejas, desempeño y persistencia)</li>
+					<li>¿Por qué nos dejamos escoger por la herramienta?</li>
+				</ul>
+			</aside>
+		</section>
+		<section>
+			<h3>La base está en los datos</h3>
+			<ul>
+				<li>Medición espacial</li>
+				<li>Funciones espaciales</li>
+				<li>Predicados espaciales</li>
+				<li>Constructores de geometría</li>
+				<li>Funciones observadoras</li>
+			</ul>
+
+			<aside class="notes">
+				<ul>
+					<li>Spatial Measurements: Computes line length, polygon area, the distance between geometries, etc.</li>
+					<li>Spatial Functions: Modify existing features to create new ones, for example by providing a buffer around them, intersecting features, etc.</li>
+					<li>Spatial Predicates: Allows true/false queries about spatial relationships between geometries. Examples include "do two polygons overlap" or 'is there a residence located within a mile of the area we are planning to build the landfill?' (see DE-9IM)</li>
+					<li>Geometry Constructors: Creates new geometries, usually by specifying the vertices (points or nodes) which define the shape.</li>
+					<li>Observer Functions: Queries which return specific information about a feature such as the location of the center of a circle</li>
+				</ul>
+			</aside>
+		</section>
+
+		<section>
+			<h3>Tipos de indexado 😰</h3>
+			<div class="grid">
+				<div class="col">
+					<ul>
+						<li>Geohash</li>
+						<li>HHCode</li>
+						<li class="fragment highlight-green">Grid (spatial index)</li>
+						<li class="fragment highlight-green">Z-order (curve)</li>
+						<li>UB-tree</li>
+						<li>Quadtree</li>
+						<li>Octree</li>
+						<li>kd-tree</li>
+					</ul>
+				</div>
+				<div class="col">
+					<ul>
+						<li>R-tree (MBR)</li>
+						<li>R+ tree</li>
+						<li>R* tree</li>
+						<li>Hilbert R-tree</li>
+						<li>X-tree</li>
+						<li>m-tree</li>
+						<li>Binary space partitioning (BSP-Tree)</li>
+					</ul>
+				</div>
+			</div>
+
+			<aside class="notes">
+				Estructuras complejas vs requerimientos simples.
+				Requerimientos y casos de uso de Geohash como herramienta correcta.
+				Ejemplos de usos.
+			</aside>
+		</section>
+
+		<section>
+			<h3>La herramienta correcta</h3>
+			<div class="grid">
+				<div class="col">
+					<br>
+					<ul>
+						<li class="fragment">Representación eficiente de ubicación</li>
+						<li class="fragment">Búsqueda eficiente por proximidad</li>
+						<li class="fragment">Adaptable, fiable y agnóstico</li>
+						<li class="fragment">Dominio público</li>
+					</ul>
+				</div>
+				<div class="col">
+					<img class="circle "  src="img/tools.jpg">
+					<p class="micro center">
+						Photo by Ashim D’Silva on <a href="https://unsplash.com/photos/Kw_zQBAChws">Unsplash</a>
+					</p>
+				</div>
+			</div>
+		</section>
+	</section>
+
+	<section id="que">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>¿Qué es GeoHash?</h1>
+		</section>
+		<section>
+			<h3>Primero lo primero...</h3>
+			<br>
+			<p>
+				<span style="color: cornflowerblue;"><i class="fa fa-fw fa-file-alt fa-3x"></i></span>
+				<span class="fragment highlight-green"><i class="fa fa-fw fa-arrow-right fa-3x"></i></span>
+				<span><i class="fa fa-fw fa-laptop-code fa-3x"></i></span>
+				<span class="fragment highlight-green"><i class="fa fa-fw fa-arrow-right fa-3x"></i></span>
+				<span style="color: crimson;"><i class="fa fa-fw fa-file-alt fa-3x"></i></span>
+			</p>
+			<br>
+			<h3>¿Qué es un hash?</h3>
+
+			<aside class="notes">
+				Una función hash es aquella que a través de un algoritmo matemático, transforma un bloque cualquiera de datos,
+				en una representación única (optimamente) de esa información. Normalmente representada en string.
+
+				Puede ser de distintas longitudes, codificaciones, criptográficas, sumas, destructiva, etc...
+			</aside>
+		</section>
+		<section>
+			<h3>GeoHash</h3>
+			<ul>
+				<li>Es un <strong class="red">algoritmo de codificación geográfica</strong> de <u>dominio público</u> creado por Gustavo Niemeyer (2008).</li>
+				<li>Es una <strong class="red">estructura de datos de jerarquía espacial</strong> que subdivide el espacio en regiones en forma de cuadrícula.</li>
+				<li>Es una de las muchas aplicaciones de las <strong class="red">curvas de órden Z</strong> y en general de las curvas de llenado de espacio.</li>
+			</ul>
+
+			<aside class="notes">
+				¡Dominio Publico! (Sin licencia)
+				Grid
+				Imagen de 2D a 1D es un ejemplo de curva de orden-Z
+			</aside>
+		</section>
+		<section>
+			<h3>Al César lo que és del César...</h3>
+			<div class="grid">
+				<div class="col">
+					<img class="circle h320" src="https://pbs.twimg.com/profile_images/467317591241805824/vaeuBf-f_400x400.png">
+					<p>CTO @ Canonical</p>
+				</div>
+				<div class="col">
+					<p>
+						Parte del equipo de Canonical desde septiembre del 2005. 
+						Colaborador de proyectos como Landscape, Juju y Snap.
+					</p>
+					<p><a href="https://twitter.com/gniemeyer">@gniemeyer</a></p>
+					<p><a href="http://niemeyer.net/">niemeyer.net</a></p>
+				</div>
+			</div>
+
+			<aside class="notes">
+				Gustavo Niemeyer ¿Como lo conocí? (mgo driver for Go and bson, goamz, yaml, etc...)
+			</aside>
+		</section>
+		<section>
+			<h3>Otra vez... ¿qué era?</h3>
+			<p>
+				Es el algoritmo de una <strong class="red">función hash</strong> que consume coordenadas geográficas <span class="quiet">(latitud, longitud)</span>,
+				y produce hashes <span class="quiet">(cadenas de caracteres)</span> de <strong class="red">precisión variable</strong> que corresponden a esa ubicación.
+			</p>
+		</section>
+		<section>
+			<h3>¿Cómo por qué requiero precisión?</h3>
+			<p>
+				El algoritmo funciona <strong class="violet">subdividiendo</strong> el "mapa" y codificando la <strong class="violet">región</strong> resultante en una versión modificada de base32
+				<span class="quiet">(dígitos del 0 al 9 y el alfabeto en minúsculas, excluyendo [a,i,l,o])</span>. Los geohashes 
+				representan regiones de un mapa, y la precisión juega un papel importante en la <strong class="violet">búsqueda por proximidad</strong>.
+			</p>
+		</section>
+		<section>
+			<h3>Ejemplo</h3>
+			<p>Coordenadas: (20.644275, -103.415962)</p>
+			<ol>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9 <span class="quiet">&nbsp;(23, -113)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9e <span class="quiet">&nbsp;(19.7, -107)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ew <span class="quiet">&nbsp;(20.4, -103.4)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewm <span class="quiet">&nbsp;(20.65, -103.54)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmq <span class="quiet">&nbsp;(20.632, -103.425)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmqw <span class="quiet">&nbsp;(20.6461, -103.42)</span></li>
+				<li><span class="green"><i class="fas fa-arrow-right fa-fw"></i></span>9ewmqwn <span class="quiet">&nbsp;(20.644, -103.4164)</span></li>
+			</ol>
+		</section>
+	</section>
+
+	<section id="como">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>Algoritmo</h1>
+		</section>
+		<section>
+			<p>Comenzamos con las coordenadas que queremos codificar. <small>(20.644275, -103.415962)</small></p>
+			<img src="img/01.jpg" >
+			<small class="micro">Mapa cortesía de: <a href="https://simplemaps.com/resources/svg-world">https://simplemaps.com/resources/svg-world</a></small>
+		</section>
+		<section>
+			<p>Partimos el mapa en 2 por su longitud y tomamos la región que corresponde. <small>0 si es menor y 1 si es mayor.</small></p>
+			<img src="img/02.jpg" >
+		</section>
+		<section>
+			<p>Ahora partimos la sección por su latitud y tomamos región la que corresponde. <small>0 si es menor y 1 si es mayor.</small></p>
+			<img src="img/03.jpg" >
+		</section>
+		<section>
+			<p>Repetimos el algoritmo con la siguiente sección por longitud. <small>(bits pares [0, 2, 4, 6, 8, ... ])</small></p>
+			<img src="img/04.jpg" >
+		</section>
+		<section>
+			<p>Y una vez más por latitud. <small>(bits impares [1, 3, 5, 7, 9, ... ])</small></p>
+			<img src="img/05.jpg" >
+		</section>
+		<section>
+			<p>Con una última vez por su longitud juntamos 5 bits.</p>
+			<img src="img/06.jpg" >
+		</section>
+		<section>
+			<p>Y codificamos esos 5 bits en base32.</p>
+			<img src="img/07.jpg" >
+		</section>
+		<section>
+			<table>
+				<p>Continuamos con el proceso cuantas veces queramos hasta la precisión deseada.</p>
+				<!-- 9ewmqwn 01001 01101 11100 10011 10110 11100 10100 -->
+				<tr class="center">
+					<td>9</td>
+					<td>e</td>
+					<td>w</td>
+					<td>m</td>
+					<td>q</td>
+					<td>w</td>
+					<td>n</td>
+				</tr>
+				<tr>
+					<td>01001</td>
+					<td>01101</td>
+					<td>11100</td>
+					<td>10011</td>
+					<td>10110</td>
+					<td>11100</td>
+					<td>10100</td>
+				</tr>
+			</table>
+			<p><small>Aproximadamente: ( 20.644 , -103.4164 )</small></p>
+			<small>Cada 5 bits nos dan un símbolo extra en base32 y mayor precisión.</small>
+		</section>
+		<section id="sizes">	
+			<table style="font-size: 0.65em;">
+				<tbody>
+				<tr>
+					<th>Length</th>
+					<th>Cell width</th>
+					<th>Cell height</th>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>≤ 5,000km</td>
+					<td>5,000km</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>≤ 1,250km</td>
+					<td>625km</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>≤ 156km</td>
+					<td>156km</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td>≤ 39.1km</td>
+					<td>19.5km</td>
+				</tr>
+				<tr>
+					<td>5</td>
+					<td>≤ 4.89km</td>
+					<td>4.89km</td>
+				</tr>
+				<tr>
+					<td>6</td>
+					<td>≤ 1.22km</td>
+					<td>0.61km</td>
+				</tr>
+				<tr>
+					<td>7</td>
+					<td>≤ 153m</td>
+					<td>153m</td>
+				</tr>
+				<tr>
+					<td>8</td>
+					<td>≤ 38.2m</td>
+					<td>19.1m</td>
+				</tr>
+				<tr>
+					<td>9</td>
+					<td>≤ 4.77m</td>
+					<td>4.77m</td>
+				</tr>
+				<tr>
+					<td>10</td>
+					<td>≤ 1.19m</td>
+					<td>0.596m</td>
+				</tr>
+				<tr>
+					<td>11</td>
+					<td>≤ 149mm</td>
+					<td>149mm</td>
+				</tr>
+				<tr>
+					<td>12</td>
+					<td>≤ 37.2mm</td>
+					<td>18.6mm</td>
+				</tr>
+				</tbody>
+			</table>
+			<br>
+			<small class="micro">Fuente: 
+				<a href="https://www.movable-type.co.uk/scripts/geohash.html">
+				https://www.movable-type.co.uk/scripts/geohash.html</a>
+			</small>
+		</section>
+	</section>
+
+	<section id="porque">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>¿Por qué usar GeoHash?</h1>
+		</section>
+		<section>
+			<h3>¡Véndemelo!</h3>
+			<ul>
+				<li>Elegante y fácil de implementar <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+				<li>Tamaño y eficiencia <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+				<li>Búsqueda e indexado espacial <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+				<li>Fácil de adaptar y compartir <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+			</ul>
+
+			<aside class="notes">
+				Hay implementaciones en TODO.<br>
+				Muy rapido y una vez optimizado es excesivo.<br>
+				Resueve trivialmente la busqueda por proximidad<br>
+				Geohashes enteros, sistemas de coordenadas personalizados.<br>
+				¡Strings!<br>
+			</aside>
+		</section>
+		<section>
+			<h3>Lugares cercanos</h3>
+			<table>
+				<tr class="fragment">
+					<td>Brightcove</td>
+					<td><code><span class="violet">9ewmy</span>f0g1</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>La Tequila - Landmark</td>
+					<td><code><span class="violet">9ewmy</span>cbck</code></td>
+				</tr>
+				
+				<tr class="fragment">
+					<td>Estadio 3 de Marzo - UAG</td>
+					<td><code><span class="violet">9ewm</span>wxnwj</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>Estadio Akron</td>
+					<td><code><span class="violet">9ewm</span>tthck</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>La Minerva</td>
+					<td><code><span class="violet">9ewm</span>x7et7</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>Catedral de Guadalajara</td>
+					<td><code><span class="violet">9ew</span>t8k1h8</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>Aeropuerto Miguel Hidalgo</td>
+					<td><code><span class="violet">9ew</span>sc29cj</code></td>
+				</tr>
+				<tr class="fragment">
+					<td>Malecón de Chapala</td>
+					<td><code><span class="violet">9ew</span>e7v4j0</code></td>
+				</tr>
+			</table>
+		</section>
+		<section>
+			<h3>Regiones</h3>
+			<img src="img/grid.jpg">
+		</section>
+		<section>
+			<h3>¿y la famosa curva de órden-Z?</h3>
+			<img src="img/zorder.jpg">
+		</section>
+	</section>
+
+	<section id="problemas">
+		<!-- Celestún  9gxwx a Mérida d58r2 -->
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>Problemas <span class="fragment">y soluciones
+				<span class="yellow"><i class="fas fa-fw fa-smile-wink"></i></span></span>
+			</h1>
+		</section>
+		<section>
+			<h3>¿No que éramos vecinos?</h3>
+			<img src="img/problem.jpg">
+
+			<aside class="notes">
+				Comentar en la curvatura de la tierra y el grid no simetrico.
+			</aside>
+		</section>
+		<section id="problemas">
+			<h3>La piedra en el zapato</h3>
+			<hr>
+			<div class="grid">
+				<div class="col">
+					<ul>
+						<br><br>
+						<li class="fragment grow">Búsqueda por región no siempre confiable <span class="fragment green"><i class="fas fa-fw fa-check"></i></span></li>
+						<br>
+						<li class="fragment shrink">Dimensiones variables de la cuadrícula <span class="fragment red"><i class="fas fa-fw fa-times"></i></span></li>
+					</ul>
+				</div>
+				<div class="col">
+					<img class="circle "  src="img/roadblock.jpg">
+					<p class="micro center">
+						Photo by Matthew Hamilton on <a href="https://unsplash.com/photos/v_CxSroHKWg">Unsplash</a>
+					</p>
+				</div>
+			</div>
+		</section>
+		<section id="soluciones">
+			<h3>Y luego, ¿qué hago?</h3>
+			<hr>
+			<div class="fragment grid">
+				<div class="col">
+					<img class="circle "  src="img/neighbour.jpg">
+					<p class="micro center">
+						Photo by Nina Strehl on <a href="https://unsplash.com/photos/Ds0ZIA5gzc4">Unsplash</a>
+					</p>
+				</div>
+				<div class="col" style="font-size: 0.75em;">
+					<br>
+					<p class="center">
+						Búsqueda de vecinos (regiones adyacentes) por precisión variable.
+					</p>
+					<table>
+						<tbody>
+							<tr>
+								<td>9ewmt</td>
+								<td>9ewmw</td>
+								<td>9ewmx</td>
+							</tr>
+							<tr>
+								<td>9ewmm</td>
+								<td style="background-color: #cc99ee;">9ewmq</td>
+								<td>9ewmr</td>
+							</tr>
+							<tr>
+								<td>9ewmj</td>
+								<td>9ewmn</td>
+								<td>9ewmp</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="center">
+						Eficiente búsqueda espacial por proximidad con bases de datos.
+					</p>
+				</div>
+			</div>
+		</section>
+		<section data-background="img/red-carpet.jpg" style="text-shadow: 2px 2px #000000;">
+			<h3 style="text-shadow: 2px 2px #000000;">¿Quién lo vistió mejor?</h3>
+			<ul>
+				<li>Redis</li>
+				<li>MongoDB</li>
+				<li>Elasticsearch</li>
+				<li>HBase</li>
+				<li>Accumulo</li>
+				<li>Etc...</li>
+			</ul>
+			<br>
+			<p class="micro center">
+				Photo by Samuel Zeller <a href="https://unsplash.com/photos/8dILNVLS8UA">Unsplash</a>
+			</p>
+		</section>
+	</section>
+
+	<section id="demo">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>Demo</h1>
+			<small>
+				JS Demo con Mapbox, Vue.js, Pure CSS y Axios
+			</small>
+		</section>
+		<section data-background-iframe="old/index.html" data-background-interactive>
+			
+		</section>
+	</section>
+
+	<section id="implementacion">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>Implementación del algoritmo</h1>
+			<p class="blue">y servidor en Golang</p>
+			<img class="logo" src="img/go.png">
+		</section>
+		<section id="requisitos">
+			<h3>Requisitos</h3>
+			<div class="grid">
+				<div class="col">
+					<br>
+					<ul>
+						<li class="fragment green"><i class="fas fa-project-diagram fa-fw"></i> Ubicación</li>
+						<li class="fragment green"><i class="fas fa-project-diagram fa-fw"></i> Región
+							<ul>
+								<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Centro</li>
+							</ul>
+						</li>
+						<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Codificar</li>
+						<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Decodificar</li>
+						<li class="fragment violet"><i class="fas fa-code fa-fw"></i> Vecinos</li>
+						<li class="fragment red"><i class="fas fa-server fa-fw"></i> Servidor
+							<ul>
+								<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Guardar</li>
+								<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Leer</li>
+								<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Buscar región</li>
+								<li class="fragment blue"><i class="fas fa-sitemap fa-fw"></i> Buscar vecinos</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="col">
+					<img class="circle" src="img/code.jpg">
+					<p class="micro center">
+						Photo by Chris Ried on <a href="https://unsplash.com/photos/ieic5Tq8YMk">Unsplash</a>
+					</p>
+				</div>
+			</div>
+		</section>
+		<section>
+			<h3 class="green">Estructuras</h3>
+			<pre><code class="go">
+type Location struct {
+lat, lon float64
+}
+
+type Region struct {
+min, max Location
+}
+
+func (r Region) Center() Location {
+return NewLocation(
+(r.min.lat+r.max.lat)/2,
+(r.min.lon+r.max.lon)/2
+)
+}
+			</code></pre>
+		</section>
+		<section>
+			<h3 class="violet">Funciones</h3>
+			<pre><code class="go">
+func Encode(latitude, longitude float64, precision int) string {
+...
+}
+
+func Decode(geohash string) Region {
+...
+}
+
+func Neighbours(geohash string) map[string]string {
+...
+}
+
+func Validate(geohash string) bool {
+...
+}
+			</code></pre>
+			<p class="center"><i class="fas fa-code fa"></i></p>
+			<aside class="notes">
+				Mostrar código completo en VSC.
+			</aside>
+		</section>
+		<section>
+			<h3 class="red">Servidor</h3>
+			<p>Construiremos una REST JSON API para una key/value store basada en geohash.</p>
+			<pre><code>
+GET        /:geohash
+POST       /:geohash
+GET        /:geohash/region
+GET        /:geohash/neighbours
+OPTIONS    /:geohash*
+-------------------------------
+PUT        /:geohash
+DELETE     /:geohash
+			</code></pre>
+			<p class="center"><i class="fas fa-code fa"></i></p>
+			<aside class="notes">
+				Mostrar código completo en VSC y regresar al Demo.
+			</aside>
+		</section>
+	</section>
+
+	<section id="la-ultima">
+		<section data-background-color="black" data-background="img/bg.jpg" data-background-opacity="0.4">
+			<h1>¡La última y nos vamos!</h1>
+		</section>
+		
+		<section>
+			<h3>¿Dónde la seguimos?</h3>
+			<div class="grid">
+				<div class="col">
+					<img class="circle" src="img/party.jpg">
+					<p class="micro center">
+						Photo by Jade Masri on <a href="https://unsplash.com/photos/74tlEYKgrBE">Unsplash</a>
+					</p>
+				</div>
+				<div class="col">
+					<br>
+					<ul>
+						<li>Distintas codificaciones y formatos</li>
+						<li>Sistemas de coordenadas acotados o virtuales</li>
+						<li>Otros sistemas (Open Location Code - Google Maps)</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+		<section>
+			<h3>¿Para qué reinventamos la rueda?</h3>
+			<p><a href="https://github.com/mmcloughlin/geohash">https://github.com/mmcloughlin/geohash</a></p>
+			<ul>
+				<li>Soporte para geohashes base32 y enteros <span class="blue">uint64</span></li>
+				<li>Optimización en ensamblador para la plataforma más común (<span class="blue">amd64</span>)</li>
+				<li>Pruebas, pruebas y más pruebas...</li>
+			</ul>
+			<p><a href="https://mmcloughlin.com/posts/geohash-assembly">
+				Geohash in Golang Assembly - Lessons in absurd optimization</a></p>
+		</section>
+		<section>
+			<h3>¡Tan claro como un charco de lodo!</h3>
+			<img class="circle h320"  src="img/questions.jpg">
+			<p class="micro center">
+				Photo by Camylla Battani on <a href="https://unsplash.com/photos/AoqgGAqrLpU">Unsplash</a>
+			</p>
+			<p>o... ¿a poco hay preguntas?</p>
+		</section>
+		<section>
+			<h3>Gracias totales</h3>
+			<img src="img/aguachile.jpg">
+			<small class="center">El rey del Aguachile - <span class="red">9ewmw3ge</span></small>
+		</section>
+	</section>
+</div>
 </div>
 
+<script src="reveal.js/dist/reveal.js"></script>
+<script src="reveal.js/plugin/notes/notes.js"></script>
+<script src="reveal.js/plugin/markdown/markdown.js"></script>
+<script src="reveal.js/plugin/highlight/highlight.js"></script>
 <script>
+	// More info about initialization & config:
+	// - https://revealjs.com/initialization/
+	// - https://revealjs.com/config/
+	Reveal.initialize({
+		hash: true,
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    location: "",
-    aproximate: "",
-    coords: [],
-    geohash: "9ewmqwnv9",
-    region: {},
-    precision: 9,
-    neighbours: {},
-    diagonal: 0.0,
-    server: "",
-    request: "",
-    response: "",
-    code: ""
-  },
-  methods: {
-    // Haversine Formula
-    distance(lat1, lon1, lat2, lon2) {
-        let p = 0.017453292519943295;    // Math.PI / 180
-        let c = Math.cos;
-        let a = 0.5 - c((lat2 - lat1) * p)/2 + 
-                c(lat1 * p) * c(lat2 * p) * 
-                (1 - c((lon2 - lon1) * p))/2;
-        return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
-    },
-    update() {
-        this.recalculate();
-        //console.log(this.location, this.precision, this.coords, this.geohash, this.region);
-        this.drawRegion("nw", this.neighbours.nw, Geohash.bounds(this.neighbours.nw));
-        this.drawRegion("n", this.neighbours.n, Geohash.bounds(this.neighbours.n));
-        this.drawRegion("ne", this.neighbours.ne, Geohash.bounds(this.neighbours.ne));
-
-        this.drawRegion("w", this.neighbours.w, Geohash.bounds(this.neighbours.w));
-        this.drawRegion("e", this.neighbours.e, Geohash.bounds(this.neighbours.e));
-
-        this.drawRegion("sw", this.neighbours.sw, Geohash.bounds(this.neighbours.sw));
-        this.drawRegion("s", this.neighbours.s, Geohash.bounds(this.neighbours.s));
-        this.drawRegion("se", this.neighbours.se, Geohash.bounds(this.neighbours.se));
-        // Geohash (center) drawn last for collision precedence (z-layer)
-        this.drawRegion("geohash", this.geohash, this.region);
-        
-    },
-    updateLocation() {
-        if (this.location) {
-            let c = this.location.split(",").map(function(x){return parseFloat(x.trim())});
-            if (c.length === 2) {
-                this.geohash = Geohash.encode(c[0], c[1], this.precision);
-            }
-        }
-    },
-    recalculate() {
-        this.precision = this.geohash.length;
-        this.region = Geohash.bounds(this.geohash);
-        let center = Geohash.center(this.region);
-        this.coords = [center.lat, center.lon];
-        this.aproximate = center.lat.toString() + ", " + center.lon.toString();
-        this.neighbours = Geohash.neighbours(this.geohash);
-        this.diagonal = this.distance(this.region.sw.lat, this.region.sw.lon, this.region.ne.lat, this.region.ne.lon).toFixed(6);
-    },
-    getRegionCoords(bounds) {
-        let height = Math.abs(bounds.ne.lat - bounds.sw.lat);
-        return [
-           [bounds.sw.lon, bounds.sw.lat], //sw
-           [bounds.sw.lon, bounds.sw.lat+height], //nw
-           [bounds.ne.lon, bounds.ne.lat], //ne
-           [bounds.ne.lon, bounds.ne.lat-height] //se
-        ];
-    },
-    removeLayer(id) {
-        if (this.map.getLayer(id)) {
-            this.map.removeLayer(id)
-            this.map.removeSource(id)
-        }
-    },
-    drawPoints(id, hashes) {
-        let layer = {
-            id,
-            type: 'symbol',
-            source: {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: []
-                }
-            },
-            layout: {
-                'icon-image': 'marker-15',
-                'icon-size': 2,
-                'text-field': ['get', 'description'],
-                'text-justify': 'center',
-                'text-size': 24-(this.precision*2),
-            },
-            'paint': {
-                'text-color': 'rgba(255, 255, 255, 1.0)',
-                'text-halo-color': 'rgba(0, 0, 0, 0.5)',
-                'text-halo-width': 2
-            }
-        }
-        hashes.forEach(h => {
-            layer.source.data.features.push({
-                type: 'Feature',
-                properties: {
-                    description: h,
-                },
-                geometry: {
-                    type: 'Point',
-                    coordinates: Geohash.coordinates(h),
-                }
-            })
-        });
-        this.map.addLayer(layer);
-        //console.log(layer)
-    },
-    drawRegion(id, hash, bounds) {
-        if ( !bounds ) {
-            console.log("Invalid region data!");
-            return;
-        }
-        this.removeLayer(id)
-        this.removeLayer(id+'-labels')
-        let background = 'rgba(245, 200, 50, 0.2)';
-        let color = 'rgba(245, 200, 50, 0.5)';
-        if ( id === 'geohash' ) {
-            background = 'rgba(200, 100, 240, 0.4)';
-            color = 'rgba(200, 100, 240, 1.0)';
-        }
-        let c = Geohash.center(bounds);
-        this.map.addLayer({
-            'id': id,
-            'type': 'fill',
-            'source': {
-                'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': [{
-                        'type:': 'Feature',
-                        'geometry': {
-                            'type': 'Polygon',
-                            'coordinates': [this.getRegionCoords(bounds)]
-                        }
-                    }]
-                }
-            },
-            'paint': {
-                'fill-color': background
-            }
-        });
-        this.map.addLayer({
-            'id': id+"-labels",
-            'type': 'symbol',
-            'source': {
-                'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': [{
-                        'type': 'Feature',
-                        'properties': {
-                            'description': hash
-                        },
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': [c.lon, c.lat]
-                        }
-                    }]
-                }
-            },
-            'layout': {
-                'text-field': ['get', 'description'],
-                'text-justify': 'center',
-                'text-size': 48-(this.precision*2)
-            },
-            'paint': {
-                'text-color': color,
-                'text-halo-color': 'rgba(0, 0, 0, 0.5)',
-                'text-halo-width': 2
-            }
-        });
-        this.map.easeTo({
-            center: this.coords.slice().reverse(),
-            zoom: precision < 8 ? (this.precision-1)*2 : (this.precision*2)+2
-        });
-        //console.log((this.precision-1)*2);
-    },
-    getData() {
-        console.log(this.server, this.geohash);
-        let vm = this;
-        axios.get(`${this.server}/${this.geohash}`)
-        .then(function (response) {
-            vm.code = response.status
-            vm.response = JSON.stringify(response.data)
-        })
-        .catch(function (error) {
-            vm.code = error.response.status
-            vm.response = error.response.data.message
-        });
-    },
-    postData() {
-        console.log(this.server, this.geohash);
-        let vm = this;
-        axios.post(`${this.server}/${this.geohash}`, vm.request, {
-            headers: { 'Content-Type': 'text/plain' }
-        }).then(function (response) {
-            vm.code = response.status
-            vm.response = JSON.stringify(response.data)
-        })
-        .catch(function (error) {
-            vm.code = error.response.status
-            vm.response = error.response.data.message
-        });
-    },
-    getRegion() {
-        this.removeLayer('region')
-        console.log(this.server, this.geohash);
-        let vm = this;
-        axios.get(`${this.server}/${this.geohash}/region`)
-        .then(function (response) {
-            vm.code = response.status
-            vm.response = JSON.stringify(response.data, null, 2)
-            let hashes = [];
-            Object.keys(response.data).forEach((gh) => {
-                hashes.push(gh);
-            })
-            vm.drawPoints('region', hashes);
-        })
-        .catch(function (error) {
-            if (error.response) {
-                vm.code = error.response.status
-                vm.response = error.response.data.message
-            } else {
-                console.error(error);
-            }
-        });
-    },
-    getNeighbours() {
-        this.removeLayer('neighbours')
-        console.log(this.server, this.geohash);
-        let vm = this;
-        axios.get(`${this.server}/${this.geohash}/neighbours`)
-        .then(function (response) {
-            vm.code = response.status
-            vm.response = JSON.stringify(response.data, null, 2)
-            let hashes = []
-            Object.keys(response.data).forEach((r) => {
-                Object.keys(response.data[r]).forEach((gh) => {
-                    hashes.push(gh)
-                })
-            })
-            vm.drawPoints('neighbours', hashes);
-        })
-        .catch(function (error) {
-            if (error.response) {
-                vm.code = error.response.status
-                vm.response = error.response.data.message
-            } else {
-                console.error(error);
-            }
-        });
-    }
-  },
-  mounted() {
-    this.recalculate();
-    mapboxgl.accessToken = 'pk.eyJ1IjoicGhyem4iLCJhIjoiY2s5dnppMmhvMDRvZzNqbnRvdmZhZGYwdiJ9.aegtz8X8zPamQdoaSIfnjA';
-    this.map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/dark-v9',
-        maxZoom: 24
-    });
-
-    let vm = this;
-    this.map.on('style.load', function() {
-        vm.update();
-    });
-    this.map.on('dblclick', function(e) {
-        vm.location = `${e.lngLat.lat}, ${e.lngLat.lng}`;
-        vm.updateLocation();
-    });
-
-  },
-  watch: {
-    geohash: function(newHash, oldHash) {
-        let len = newHash.length;
-        if (0 < len && len < 13 ) {
-            this.update();
-        } else {
-            this.geohash = oldHash;
-        }
-    },
-  }
-})
-
-
+		// Learn about plugins: https://revealjs.com/plugins/
+		plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+	});
 </script>
+
+
+<!--
+<script src="../revealjs/jsreveal.js"></script>
+<script>
+	// More info about config & dependencies:
+	// - https://github.com/hakimelreveal.js#configuration
+	// - https://github.com/hakimelreveal.js#dependencies
+	Reveal.initialize({
+		dependencies: [
+			{ src: '../revealjs/plugin/markdown/marked.js' },
+			{ src: '../revealjs/plugin/markdown/markdown.js' },
+			{ src: '../revealjs/plugin/notes/notes.js', async: true },
+			{ src: '../revealjs/plugin/highlight/highlight.js', async: true }
+		]
+	});
+</script>
+-->
 </body>
 </html>

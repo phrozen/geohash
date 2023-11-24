@@ -18,3 +18,5 @@ server/server
 *.key
 
 node_modules
+
+docs/presentation
