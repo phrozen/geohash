@@ -108,7 +108,7 @@
                     <label for="request">Request:</label>
                     <textarea id="request" class="pure-input-1" v-model="request"></textarea>
                     <label for="response">Response: <span :class="[parseInt(code) < 299 ? 'green' : 'red']">{{ code }}</span></label>
-                    <textarea id="response" class="pure-input-1" v-model="response" rows="8" readonly></textarea>
+                    <textarea id="response" class="pure-input-1" v-model="response" rows="8" readonly style="font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace;"></textarea>
                 </fieldset>
             </form>
             <p class="small">
@@ -210,6 +210,7 @@ var app = new Vue({
         }
     },
     drawPoints(id, hashes) {
+        this.removeLayer(id)
         let layer = {
             id,
             type: 'symbol',
@@ -424,8 +425,6 @@ var app = new Vue({
     },
   }
 })
-
-
 </script>
 </body>
 </html>
